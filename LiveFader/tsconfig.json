@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES3",
+    "outDir": "",
+    "module": "commonjs"
+  },
+  "include": ["src/**/*.ts"]
+}

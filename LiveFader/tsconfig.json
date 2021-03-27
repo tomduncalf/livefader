@@ -1,8 +1,14 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
-    "target": "ES3",
-    "outDir": "",
-    "module": "commonjs"
+    "module": "CommonJS",
+    "target": "es3",
+    "strict": true,
+    "noImplicitAny": true,
+    "allowUnreachableCode": true,
+    "sourceMap": false,
+    "lib": ["es7"],
+    "outDir": "dist/"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/*.ts", "types/*.d.ts"]
 }

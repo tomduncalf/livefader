@@ -5,7 +5,7 @@ var Test = /** @class */ (function () {
     function Test() {
     }
     Test.prototype.run = function () {
-        post(12345);
+        post(123);
     };
     return Test;
 }());

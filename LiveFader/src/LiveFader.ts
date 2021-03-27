@@ -1,6 +1,8 @@
 import { Test } from "./Test";
 
-export const init = () => {
-  var t = new Test();
-  t.run();
-};
+var t = new Test();
+t.run();
+
+// .ts files with this at the end become a script usable in a [js] or [jsui] object
+let module = {};
+export = {};

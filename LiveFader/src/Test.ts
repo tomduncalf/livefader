@@ -1,5 +1,5 @@
 export class Test {
   run() {
-    post(123);
+    post(12);
   }
 }

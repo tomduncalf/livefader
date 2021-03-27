@@ -1,8 +1,22 @@
 {
   "scripts": {
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "touch": "touch dist/main.js",
+    "watch": "npm-watch"
+  },
+  "watch": {
+    "touch": {
+      "patterns": [
+        "dist"
+      ],
+      "extensions": "js",
+      "ignore": "main.js"
+    }
   },
   "devDependencies": {
     "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "npm-watch": "^0.9.0"
   }
 }

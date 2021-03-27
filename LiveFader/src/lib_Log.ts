@@ -1,3 +1,5 @@
+import { LOG_ALL_MODULES, LOG_CONFIG } from "./config_log";
+
 export const log = (x: any, y?: any, z?: any) => {
   for (var i = 0, len = arguments.length; i < len; i++) {
     var message = arguments[i];
@@ -20,24 +22,26 @@ export const log = (x: any, y?: any, z?: any) => {
   post("\n");
 };
 
-const ENABLED_LOG_MODULES: string[] = ["LiveParameterListener"];
+export enum LogLevels {
+  Debug = "debug",
+  Verbose = "verbose",
+}
 
 export class Log {
-  constructor(private moduleName: string) {}
+  constructor(private moduleName: keyof typeof LOG_CONFIG) {}
 
-  logIfEnabled = (...args: any[]) => {
+  logIfEnabled = (level: "debug" | "verbose", ...args: any[]) => {
     if (
-      ENABLED_LOG_MODULES.length === 0 ||
-      ENABLED_LOG_MODULES.indexOf(this.moduleName) > -1
+      LOG_ALL_MODULES ||
+      (LOG_CONFIG[this.moduleName].enabled &&
+        LOG_CONFIG[this.moduleName][level])
     )
       log(args);
   };
 
-  debug = (...args: any[]) =>
-    this.logIfEnabled(this.moduleName, "debug", ...args);
+  debug = (...args: any[]) => this.logIfEnabled("debug", ...args);
 
-  verbose = (...args: any[]) =>
-    this.logIfEnabled(this.moduleName, "verbose", ...args);
+  verbose = (...args: any[]) => this.logIfEnabled("verbose", ...args);
 
   error = (...args: any[]) => log(this.moduleName, "error", ...args);
 }

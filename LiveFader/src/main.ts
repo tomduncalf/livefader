@@ -1,4 +1,4 @@
-import { log } from "./lib_maxUtils";
+import { log } from "./lib_Log";
 import { LiveParameterListener } from "./LiveParameterListener";
 
 log("__________________");

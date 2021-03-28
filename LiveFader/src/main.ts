@@ -5,7 +5,7 @@ log("__________________");
 log("Script reloaded at: " + new Date());
 
 inlets = 5;
-outlets = 1;
+outlets = 2;
 
 let instance: LiveFader;
 

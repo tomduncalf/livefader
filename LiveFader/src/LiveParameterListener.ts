@@ -9,10 +9,16 @@ import { Log } from "./lib_Log";
 export class LiveParameterListener {
   log = new Log("LiveParameterListener");
 
-  onActiveParameterChanged: (parameter: LiveApiObject) => void = () => {};
-  onActiveParameterValueChanged: (value: number) => void = () => {};
+  onActiveParameterChanged: (parameter: LiveApiObject, device: LiveApiObject) => void = () => {};
+  onActiveParameterValueChanged: (
+    value: number,
+    parameter: LiveApiObject,
+    device: LiveApiObject
+  ) => void = () => {};
 
-  activeParameter?: LiveApiObject;
+  private activeDevice?: LiveApiObject;
+  private activeParameter?: LiveApiObject;
+  private activeDeviceIsSelf = false;
 
   private activeTrackPath = "";
   private activeDevicePath = "";
@@ -35,7 +41,9 @@ export class LiveParameterListener {
   setupParameterValueListener = () => {
     this.parameterValueListener = new LiveAPI((v: any[]) => {
       this.log.verbose("propertyValueListener " + v);
-      this.onActiveParameterValueChanged(v[1]);
+
+      if (!this.activeDeviceIsSelf)
+        this.onActiveParameterValueChanged(v[1], this.activeParameter!, this.activeDevice!);
     });
   };
 
@@ -53,11 +61,13 @@ export class LiveParameterListener {
         this.activeParameterPath = this.activeParameter.unquotedpath;
         this.resetParameterValueListener();
 
-        this.onActiveParameterChanged(this.activeParameter);
+        if (!this.activeDeviceIsSelf)
+          this.onActiveParameterChanged(this.activeParameter, this.activeDevice!);
       }
     });
   };
 
+  // Seems like we need to reset this whenever the device changes
   resetParameterListener = () => {
     this.parameterListener.property = "selected_parameter";
     this.parameterListener.path = "live_set view";
@@ -68,11 +78,14 @@ export class LiveParameterListener {
       this.log.verbose("deviceListener " + v);
 
       if (v[0] === "selected_device") {
-        var device = getLiveObjectById(v[2]);
-        this.activeDevicePath = device.unquotedpath;
+        this.activeDevice = getLiveObjectById(v[2]);
+        this.activeDevicePath = this.activeDevice.unquotedpath;
         this.resetParameterListener();
 
-        this.log.verbose("deviceListener " + device.get("name"));
+        const name = this.activeDevice.get<string>("name");
+        this.activeDeviceIsSelf = name === "LiveFader"; // TODO must be a better way to do this
+
+        this.log.verbose("deviceListener " + this.activeDevice.get("name"));
       }
     });
   };
@@ -96,6 +109,5 @@ export class LiveParameterListener {
     });
     this.trackListener.property = "selected_track";
     this.trackListener.path = "live_set view";
-    this.log.debug("setupTrackListener");
   };
 }

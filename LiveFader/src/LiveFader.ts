@@ -13,6 +13,11 @@ enum Inlets {
   FullScreenButton,
 }
 
+export enum Outlets {
+  Messages,
+  Debug,
+}
+
 enum State {
   Normal,
   Mapping,
@@ -84,6 +89,11 @@ export class LiveFader {
     this.currentFaderValue = value;
   };
 
+  setState = (state: State) => {
+    this.log.debug(`Entering state ${state}`);
+    this.state = state;
+  };
+
   updateFader = () => {
     if (this.currentFaderValue === this.lastFaderValue) return;
 
@@ -93,7 +103,7 @@ export class LiveFader {
 
   handleFaderUpdate = () => {
     const previousState = this.state;
-    this.state = State.Crossfading;
+    this.setState(State.Crossfading);
 
     this.activeLockedParameters.forEach((activeLockedParameter) => {
       const values = [
@@ -110,21 +120,30 @@ export class LiveFader {
       activeLockedParameter.trackedParameter.apiObject.set("value", newValue);
     });
 
-    this.state = previousState;
+    this.setState(previousState);
   };
 
   handleFaderButton = (inlet: Inlets, value: number) => {
     if (value === 0) {
-      this.state = State.Normal;
+      this.log.debug(`Enter normal mode`);
+
+      this.setState(State.Normal);
       this.currentMappingScene = undefined;
     } else {
-      this.state = State.Mapping;
+      this.log.debug(
+        `Enter mapping mode for ${inlet === Inlets.LeftButton ? "left" : "right"} scene`
+      );
+
+      this.setState(State.Mapping);
       this.currentMappingScene = this.activeScenes[inlet === Inlets.LeftButton ? 0 : 1];
     }
   };
 
-  handleActiveParameterValueChanged = (value: number) => {
-    const parameter = this.liveParameterListener.activeParameter!;
+  handleActiveParameterValueChanged = (
+    value: number,
+    parameter: LiveApiObject,
+    device: LiveApiObject
+  ) => {
     const parameterId = parameter.id;
 
     if (this.state === State.Normal) {
@@ -142,9 +161,9 @@ export class LiveFader {
         this.currentMappingScene!.lockedParametersById[parameterId].lockedValue = value;
 
         this.log.verbose(
-          `Updating locked parameter ${parameterId} target to ${value} in scene ${
-            this.currentMappingScene!.name
-          }`
+          `Updating locked parameter ${parameter.get(
+            "name"
+          )} ${parameterId} target to ${value} in scene ${this.currentMappingScene!.name}`
         );
       }
     } else if (this.state === State.Crossfading) {

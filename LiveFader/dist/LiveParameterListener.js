@@ -11,6 +11,7 @@ var lib_Log_1 = require("./lib_Log");
 var LiveParameterListener = /** @class */ (function () {
     function LiveParameterListener() {
         var _this = this;
+        this.id = Math.random();
         this.log = new lib_Log_1.Log("LiveParameterListener");
         this.onActiveParameterChanged = function () { };
         this.onActiveParameterValueChanged = function () { };
@@ -29,7 +30,7 @@ var LiveParameterListener = /** @class */ (function () {
         };
         this.setupParameterListener = function () {
             _this.parameterListener = new LiveAPI(function (v) {
-                _this.log.verbose("parameterListener " + v);
+                _this.log.verbose(_this.id + "parameterListener " + v);
                 if (v[0] === "selected_parameter" && v[2] > 0) {
                     _this.activeParameter = lib_maxForLiveUtils_1.getLiveObjectById(v[2]);
                     _this.activeParameterPath = _this.activeParameter.unquotedpath;
@@ -70,6 +71,7 @@ var LiveParameterListener = /** @class */ (function () {
             _this.trackListener.property = "selected_track";
             _this.trackListener.path = "live_set view";
         };
+        this.log.verbose("constructor");
         this.setupParameterValueListener();
         this.setupParameterListener();
         this.setupDeviceListener();

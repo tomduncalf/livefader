@@ -7,6 +7,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
 exports.__esModule = true;
 exports.Log = exports.LogLevels = exports.log = void 0;
 var config_log_1 = require("./config_log");
+var LOG_TO_OUTLET = false;
+var OUTLET_LOG_LINES = 10;
+var outletLog = [];
 var log = function (x, y, z) {
     for (var i = 0, len = arguments.length; i < len; i++) {
         var message = arguments[i];
@@ -25,7 +28,11 @@ var log = function (x, y, z) {
             outMessage = message;
         }
         post(outMessage);
-        outlet(0, "prepend", outMessage + "\n");
+        if (LOG_TO_OUTLET) {
+            outletLog.push(outMessage);
+            outletLog = outletLog.slice(-OUTLET_LOG_LINES);
+            outlet(0, "set", outletLog.join("\n"));
+        }
     }
     post("\n");
 };

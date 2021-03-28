@@ -7,6 +7,7 @@ import { Log } from "./lib_Log";
  * calls the corresponding onActive...Changed callback when one changes.
  */
 export class LiveParameterListener {
+  id = Math.random();
   log = new Log("LiveParameterListener");
 
   onActiveParameterChanged: (parameter: LiveApiObject) => void = () => {};
@@ -23,6 +24,8 @@ export class LiveParameterListener {
   private parameterValueListener!: LiveAPI;
 
   constructor() {
+    this.log.verbose("constructor");
+
     this.setupParameterValueListener();
     this.setupParameterListener();
     this.setupDeviceListener();
@@ -43,7 +46,7 @@ export class LiveParameterListener {
 
   setupParameterListener = () => {
     this.parameterListener = new LiveAPI((v: any[]) => {
-      this.log.verbose("parameterListener " + v);
+      this.log.verbose(this.id + "parameterListener " + v);
 
       if (v[0] === "selected_parameter" && v[2] > 0) {
         this.activeParameter = getLiveObjectById(v[2]);

@@ -1,5 +1,9 @@
 import { LOG_ALL_MODULES, LOG_CONFIG } from "./config_log";
 
+const LOG_TO_OUTLET = false;
+const OUTLET_LOG_LINES = 10;
+let outletLog: string[] = [];
+
 export const log = (x: any, y?: any, z?: any) => {
   for (var i = 0, len = arguments.length; i < len; i++) {
     var message = arguments[i];
@@ -17,7 +21,12 @@ export const log = (x: any, y?: any, z?: any) => {
     }
 
     post(outMessage);
-    outlet(0, "prepend", outMessage + "\n");
+
+    if (LOG_TO_OUTLET) {
+      outletLog.push(outMessage);
+      outletLog = outletLog.slice(-OUTLET_LOG_LINES);
+      outlet(0, "set", outletLog.join("\n"));
+    }
   }
   post("\n");
 };

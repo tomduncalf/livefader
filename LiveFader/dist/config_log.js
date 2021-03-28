@@ -5,7 +5,12 @@ exports.LOG_CONFIG = {
     LiveParameterListener: {
         enabled: true,
         debug: true,
-        verbose: false
+        verbose: true
+    },
+    LiveFader: {
+        enabled: true,
+        debug: true,
+        verbose: true
     }
 };
 exports.LOG_ALL_MODULES = false;

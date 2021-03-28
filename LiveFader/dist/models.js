@@ -1,11 +1,6 @@
 "use strict";
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
-};
 exports.__esModule = true;
-exports.InputState = exports.TemporaryState = exports.State = void 0;
+exports.TrackedParameters = exports.TrackedParameter = exports.ParameterScene = exports.LockedParameter = void 0;
 var LockedParameter = /** @class */ (function () {
     function LockedParameter(parameterId, lockedValue) {
         this.parameterId = parameterId;
@@ -13,6 +8,7 @@ var LockedParameter = /** @class */ (function () {
     }
     return LockedParameter;
 }());
+exports.LockedParameter = LockedParameter;
 var ParameterScene = /** @class */ (function () {
     function ParameterScene(name) {
         this.name = name;
@@ -21,6 +17,7 @@ var ParameterScene = /** @class */ (function () {
     }
     return ParameterScene;
 }());
+exports.ParameterScene = ParameterScene;
 var TrackedParameter = /** @class */ (function () {
     function TrackedParameter(apiObject, lastUserValue) {
         this.apiObject = apiObject;
@@ -28,9 +25,7 @@ var TrackedParameter = /** @class */ (function () {
     }
     return TrackedParameter;
 }());
-// Keep track of every parameter which is locked in any scene, so we can quickly
-// access its LiveApiObject to set the value, and also so we can keep track of
-// the last value the user set it to so we know what value to return to
+exports.TrackedParameter = TrackedParameter;
 var TrackedParameters = /** @class */ (function () {
     function TrackedParameters() {
         var _this = this;
@@ -45,32 +40,4 @@ var TrackedParameters = /** @class */ (function () {
     }
     return TrackedParameters;
 }());
-var CHAR_CODE_A = 65;
-// Application state which we want to persist
-var State = /** @class */ (function () {
-    function State() {
-        // Populate 8 scenes to start, named A to H
-        this.scenes = __spreadArray([], new Array(8)).map(function (_, i) { return new ParameterScene(String.fromCharCode(CHAR_CODE_A + i)); });
-        this.activeScenes = [this.scenes[0], this.scenes[1]];
-    }
-    return State;
-}());
-exports.State = State;
-// Temporary state which we will recreate each time
-var TemporaryState = /** @class */ (function () {
-    function TemporaryState() {
-        // Keep a reference to the parameters which are locked by the current scenes
-        // so we don't have to calculate this every time the crossfader changes
-        this.activeLockedParameters = [[], []];
-        this.trackedParameters = new TrackedParameters();
-    }
-    return TemporaryState;
-}());
-exports.TemporaryState = TemporaryState;
-// State of inputs
-var InputState = /** @class */ (function () {
-    function InputState() {
-    }
-    return InputState;
-}());
-exports.InputState = InputState;
+exports.TrackedParameters = TrackedParameters;

@@ -8,6 +8,7 @@ inlets = 4;
 outlets = 1;
 
 const instance = new LiveFader();
+instance.patcher = this.patcher;
 
 // Need to hook up to inlets/outlets at this main entry point
 function msg_int(value: number) {

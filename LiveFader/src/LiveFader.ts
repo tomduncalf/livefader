@@ -21,6 +21,7 @@ enum State {
 // Main entry point class which hooks everything together
 export class LiveFader {
   log = new Log("LiveFader");
+  patcher: any;
 
   state: State = State.Normal;
 
@@ -55,6 +56,8 @@ export class LiveFader {
   handleMessage = (inlet: Inlets, value: number) => {
     if (inlet === Inlets.LeftButton || inlet === Inlets.RightButton) {
       this.handleFaderButton(inlet, value);
+    } else if (inlet === Inlets.FullScreenButton) {
+      this.openFullScreen();
     }
   };
 
@@ -124,5 +127,12 @@ export class LiveFader {
         }
       });
     });
+  };
+
+  openFullScreen = () => {
+    this.patcher.message("script", "send", "window", "flags", "nomenu");
+    this.patcher.message("script", "send", "window", "flags", "float");
+    this.patcher.message("script", "send", "window", "exec");
+    this.patcher.front();
   };
 }

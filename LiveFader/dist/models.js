@@ -5,7 +5,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
     return to;
 };
 exports.__esModule = true;
-exports.State = void 0;
+exports.InputState = exports.TemporaryState = exports.State = void 0;
 var LockedParameter = /** @class */ (function () {
     function LockedParameter(parameterId, lockedValue) {
         this.parameterId = parameterId;
@@ -46,12 +46,9 @@ var TrackedParameters = /** @class */ (function () {
     return TrackedParameters;
 }());
 var CHAR_CODE_A = 65;
+// Application state which we want to persist
 var State = /** @class */ (function () {
     function State() {
-        // Keep a reference to the parameters which are locked by the current scenes
-        // so we don't have to calculate this every time the crossfader changes
-        this.activeLockedParameters = [[], []];
-        this.trackedParameters = new TrackedParameters();
         // Populate 8 scenes to start, named A to H
         this.scenes = __spreadArray([], new Array(8)).map(function (_, i) { return new ParameterScene(String.fromCharCode(CHAR_CODE_A + i)); });
         this.activeScenes = [this.scenes[0], this.scenes[1]];
@@ -59,3 +56,21 @@ var State = /** @class */ (function () {
     return State;
 }());
 exports.State = State;
+// Temporary state which we will recreate each time
+var TemporaryState = /** @class */ (function () {
+    function TemporaryState() {
+        // Keep a reference to the parameters which are locked by the current scenes
+        // so we don't have to calculate this every time the crossfader changes
+        this.activeLockedParameters = [[], []];
+        this.trackedParameters = new TrackedParameters();
+    }
+    return TemporaryState;
+}());
+exports.TemporaryState = TemporaryState;
+// State of inputs
+var InputState = /** @class */ (function () {
+    function InputState() {
+    }
+    return InputState;
+}());
+exports.InputState = InputState;

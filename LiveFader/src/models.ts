@@ -33,15 +33,10 @@ class TrackedParameters {
 
 const CHAR_CODE_A = 65;
 
+// Application state which we want to persist
 export class State {
   scenes: ParameterScene[];
   activeScenes: ParameterScene[];
-
-  // Keep a reference to the parameters which are locked by the current scenes
-  // so we don't have to calculate this every time the crossfader changes
-  activeLockedParameters: [LockedParameter[], LockedParameter[]] = [[], []];
-
-  trackedParameters = new TrackedParameters();
 
   constructor() {
     // Populate 8 scenes to start, named A to H
@@ -52,3 +47,15 @@ export class State {
     this.activeScenes = [this.scenes[0], this.scenes[1]];
   }
 }
+
+// Temporary state which we will recreate each time
+export class TemporaryState {
+  // Keep a reference to the parameters which are locked by the current scenes
+  // so we don't have to calculate this every time the crossfader changes
+  activeLockedParameters: [LockedParameter[], LockedParameter[]] = [[], []];
+
+  trackedParameters = new TrackedParameters();
+}
+
+// State of inputs
+export class InputState {}

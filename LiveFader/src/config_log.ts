@@ -10,7 +10,7 @@ export const LOG_CONFIG = {
   LiveParameterListener: {
     enabled: true,
     debug: true,
-    verbose: true,
+    verbose: false,
   } as LogConfig,
 
   LiveFader: {

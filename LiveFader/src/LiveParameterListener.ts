@@ -13,10 +13,11 @@ export class LiveParameterListener {
   onActiveParameterChanged: (parameter: LiveApiObject) => void = () => {};
   onActiveParameterValueChanged: (value: number) => void = () => {};
 
+  activeParameter?: LiveApiObject;
+
   private activeTrackPath = "";
   private activeDevicePath = "";
   private activeParameterPath = "";
-  private activeParameter?: LiveApiObject;
 
   private trackListener!: LiveAPI;
   private deviceListener!: LiveAPI;

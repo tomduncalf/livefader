@@ -22,6 +22,15 @@ export class TrackedParameters {
     return this.trackedParametersById[id] !== undefined;
   };
 
+  addOrUpdateTrackedParameter = (id: number, value: number) => {
+    if (!this.isParameterTracked(id)) this.addTrackedParameter(id, value);
+    else this.updateTrackedParameterValue(id, value);
+  };
+
+  addTrackedParameter = (id: number, value: number) => {
+    this.trackedParametersById[id] = new TrackedParameter(id, value);
+  };
+
   updateTrackedParameterValue = (id: number, value: number) => {
     if (this.isParameterTracked(id))
       this.trackedParametersById[id].lastUserValue = value;

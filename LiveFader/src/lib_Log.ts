@@ -1,7 +1,5 @@
-import { LOG_ALL_MODULES, LOG_CONFIG } from "./config_log";
+import { LOG_ALL_MODULES, LOG_CONFIG, LOG_TO_OUTLET, OUTLET_LOG_LINES } from "./config_log";
 
-const LOG_TO_OUTLET = false;
-const OUTLET_LOG_LINES = 10;
 let outletLog: string[] = [];
 
 export const log = (x: any, y?: any, z?: any) => {
@@ -23,8 +21,8 @@ export const log = (x: any, y?: any, z?: any) => {
     post(outMessage);
 
     if (LOG_TO_OUTLET) {
-      outletLog.push(outMessage);
-      outletLog = outletLog.slice(-OUTLET_LOG_LINES);
+      outletLog = [outMessage, ...outletLog];
+      outletLog = outletLog.slice(0, OUTLET_LOG_LINES);
       outlet(0, "set", outletLog.join("\n"));
     }
   }
@@ -42,8 +40,7 @@ export class Log {
   logIfEnabled = (level: "debug" | "verbose", ...args: any[]) => {
     if (
       LOG_ALL_MODULES ||
-      (LOG_CONFIG[this.moduleName].enabled &&
-        LOG_CONFIG[this.moduleName][level])
+      (LOG_CONFIG[this.moduleName].enabled && LOG_CONFIG[this.moduleName][level])
     )
       log(args);
   };

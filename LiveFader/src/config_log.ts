@@ -1,5 +1,3 @@
-import { LogLevels } from "./lib_Log";
-
 interface LogConfig {
   enabled: boolean;
   debug: boolean;
@@ -10,7 +8,7 @@ export const LOG_CONFIG = {
   LiveParameterListener: {
     enabled: true,
     debug: true,
-    verbose: false,
+    verbose: true,
   } as LogConfig,
 
   LiveFader: {
@@ -27,3 +25,6 @@ export const LOG_CONFIG = {
 };
 
 export const LOG_ALL_MODULES = false;
+
+export const LOG_TO_OUTLET = true;
+export const OUTLET_LOG_LINES = 10;

@@ -7,7 +7,6 @@ import { Log } from "./lib_Log";
  * calls the corresponding onActive...Changed callback when one changes.
  */
 export class LiveParameterListener {
-  id = Math.random();
   log = new Log("LiveParameterListener");
 
   onActiveParameterChanged: (parameter: LiveApiObject) => void = () => {};
@@ -25,7 +24,7 @@ export class LiveParameterListener {
   private parameterValueListener!: LiveAPI;
 
   constructor() {
-    this.log.verbose("constructor");
+    this.log.debug("constructor");
 
     this.setupParameterValueListener();
     this.setupParameterListener();
@@ -47,7 +46,7 @@ export class LiveParameterListener {
 
   setupParameterListener = () => {
     this.parameterListener = new LiveAPI((v: any[]) => {
-      this.log.verbose(this.id + "parameterListener " + v);
+      this.log.verbose("parameterListener " + v);
 
       if (v[0] === "selected_parameter" && v[2] > 0) {
         this.activeParameter = getLiveObjectById(v[2]);
@@ -85,7 +84,7 @@ export class LiveParameterListener {
 
   setupTrackListener = () => {
     this.trackListener = new LiveAPI((v: any[]) => {
-      this.log.verbose("trackListener " + v);
+      this.log.debug("trackListener " + v);
 
       if (v[0] === "selected_track") {
         var track = getLiveObjectById(v[2]);
@@ -97,5 +96,6 @@ export class LiveParameterListener {
     });
     this.trackListener.property = "selected_track";
     this.trackListener.path = "live_set view";
+    this.log.debug("setupTrackListener");
   };
 }

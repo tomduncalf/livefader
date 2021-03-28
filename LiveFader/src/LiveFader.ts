@@ -1,8 +1,8 @@
-import { Log } from "./lib_Log";
+import { log, Log } from "./lib_Log";
 import { lerp } from "./lib_math";
 import { getLiveObjectById } from "./lib_maxForLiveUtils";
 import { LiveParameterListener } from "./LiveParameterListener";
-import { LockedParameter, ParameterScene, TrackedParameter, TrackedParameters } from "./models";
+import { LockedParameter, ParameterScene, TrackedParameter } from "./models";
 
 const CHAR_CODE_A = 65;
 
@@ -19,6 +19,11 @@ enum State {
   Crossfading,
 }
 
+interface ActiveLockedParameter {
+  trackedParameter: TrackedParameter;
+  lockedParameters: [LockedParameter?, LockedParameter?];
+}
+
 // Main entry point class which hooks everything together
 export class LiveFader {
   log = new Log("LiveFader");
@@ -31,14 +36,14 @@ export class LiveFader {
 
   // Keep a reference to the parameters which are locked by either of the current scenes
   // so we don't have to calculate this every time the crossfader changes
-  activeLockedParameters: [LockedParameter?, LockedParameter?][] = [];
+  activeLockedParameters: ActiveLockedParameter[] = [];
 
   // Keep track of every parameter which is locked in any scene, so we can quickly
   // access its LiveApiObject to set the value, and also so we can keep track of
   // the last value the user set it to so we know what value to return to
   trackedParametersById: Record<number, TrackedParameter> = {};
 
-  liveParameterListener = new LiveParameterListener();
+  liveParameterListener: LiveParameterListener = new LiveParameterListener();
 
   currentMappingScene?: ParameterScene = undefined;
 
@@ -48,6 +53,8 @@ export class LiveFader {
   faderUpdateTask: Task;
 
   constructor() {
+    log("LiveFader started");
+
     // Populate 8 scenes to start, named A to H
     this.scenes = [...new Array(8)].map(
       (_, i) => new ParameterScene(String.fromCharCode(CHAR_CODE_A + i))
@@ -89,20 +96,18 @@ export class LiveFader {
     this.state = State.Crossfading;
 
     this.activeLockedParameters.forEach((activeLockedParameter) => {
-      // TODO This is messy, why not already in the array?
-      const id = activeLockedParameter[0]
-        ? activeLockedParameter[0].parameterId
-        : activeLockedParameter[1]!.parameterId;
-
-      // TODO fill in 0
       const values = [
-        activeLockedParameter[0] ? activeLockedParameter[0].lockedValue : 0,
-        activeLockedParameter[1] ? activeLockedParameter[1].lockedValue : 0,
+        activeLockedParameter.lockedParameters[0]
+          ? activeLockedParameter.lockedParameters[0].lockedValue
+          : activeLockedParameter.trackedParameter.lastUserValue,
+        activeLockedParameter.lockedParameters[1]
+          ? activeLockedParameter.lockedParameters[1].lockedValue
+          : activeLockedParameter.trackedParameter.lastUserValue,
       ];
+
       const newValue = lerp(values[0], values[1], this.currentFaderValue);
 
-      // TODO why do we need to look this up rather than store in activeLockedParams?
-      this.trackedParametersById[id].apiObject.set("value", newValue);
+      activeLockedParameter.trackedParameter.apiObject.set("value", newValue);
     });
 
     this.state = previousState;
@@ -176,17 +181,25 @@ export class LiveFader {
 
   updateActiveLockedParameters = () => {
     // Use a dictionary for easier construction of the array
-    const activeLockedParametersObj: Record<number, [LockedParameter?, LockedParameter?]> = {};
+    const activeLockedParametersObj: Record<number, ActiveLockedParameter> = {};
 
     this.activeScenes[0].forEachLockedParameter((lockedParameter) => {
-      activeLockedParametersObj[lockedParameter.parameterId] = [lockedParameter, undefined];
+      activeLockedParametersObj[lockedParameter.parameterId] = {
+        trackedParameter: this.trackedParametersById[lockedParameter.parameterId],
+        lockedParameters: [lockedParameter, undefined],
+      };
     });
 
     this.activeScenes[1].forEachLockedParameter((lockedParameter) => {
       if (activeLockedParametersObj[lockedParameter.parameterId]) {
-        activeLockedParametersObj[lockedParameter.parameterId][1] = lockedParameter;
+        activeLockedParametersObj[
+          lockedParameter.parameterId
+        ].lockedParameters[1] = lockedParameter;
       } else {
-        activeLockedParametersObj[lockedParameter.parameterId] = [undefined, lockedParameter];
+        activeLockedParametersObj[lockedParameter.parameterId] = {
+          trackedParameter: this.trackedParametersById[lockedParameter.parameterId],
+          lockedParameters: [undefined, lockedParameter],
+        };
       }
     });
 

@@ -1,4 +1,5 @@
 import { Log } from "./lib_Log";
+import { lerp } from "./lib_math";
 import { getLiveObjectById } from "./lib_maxForLiveUtils";
 import { LiveParameterListener } from "./LiveParameterListener";
 import { LockedParameter, ParameterScene, TrackedParameter, TrackedParameters } from "./models";
@@ -28,10 +29,9 @@ export class LiveFader {
   scenes: ParameterScene[];
   activeScenes: ParameterScene[];
 
-  // Keep a reference to the parameters which are locked by the current scenes
+  // Keep a reference to the parameters which are locked by either of the current scenes
   // so we don't have to calculate this every time the crossfader changes
-  // TODO is this useful?
-  activeLockedParameters: [LockedParameter[], LockedParameter[]] = [[], []];
+  activeLockedParameters: [LockedParameter?, LockedParameter?][] = [];
 
   // Keep track of every parameter which is locked in any scene, so we can quickly
   // access its LiveApiObject to set the value, and also so we can keep track of
@@ -42,6 +42,11 @@ export class LiveFader {
 
   currentMappingScene?: ParameterScene = undefined;
 
+  currentFaderValue = 0;
+  lastFaderValue = 0;
+
+  faderUpdateTask: Task;
+
   constructor() {
     // Populate 8 scenes to start, named A to H
     this.scenes = [...new Array(8)].map(
@@ -51,6 +56,11 @@ export class LiveFader {
     this.activeScenes = [this.scenes[0], this.scenes[1]];
 
     this.liveParameterListener.onActiveParameterValueChanged = this.handleActiveParameterValueChanged;
+
+    // Handle crossfader input at 30fps rather than continuosly to help with performance
+    this.faderUpdateTask = new Task(this.updateFader, this);
+    this.faderUpdateTask.interval = 1000 / 30;
+    this.faderUpdateTask.repeat();
   }
 
   handleMessage = (inlet: Inlets, value: number) => {
@@ -58,7 +68,44 @@ export class LiveFader {
       this.handleFaderButton(inlet, value);
     } else if (inlet === Inlets.FullScreenButton) {
       this.openFullScreen();
+    } else if (inlet === Inlets.Fader) {
+      this.handleFader(value);
     }
+  };
+
+  handleFader = (value: number) => {
+    this.currentFaderValue = value;
+  };
+
+  updateFader = () => {
+    if (this.currentFaderValue === this.lastFaderValue) return;
+
+    this.handleFaderUpdate();
+    this.lastFaderValue = this.currentFaderValue;
+  };
+
+  handleFaderUpdate = () => {
+    const previousState = this.state;
+    this.state = State.Crossfading;
+
+    this.activeLockedParameters.forEach((activeLockedParameter) => {
+      // TODO This is messy, why not already in the array?
+      const id = activeLockedParameter[0]
+        ? activeLockedParameter[0].parameterId
+        : activeLockedParameter[1]!.parameterId;
+
+      // TODO fill in 0
+      const values = [
+        activeLockedParameter[0] ? activeLockedParameter[0].lockedValue : 0,
+        activeLockedParameter[1] ? activeLockedParameter[1].lockedValue : 0,
+      ];
+      const newValue = lerp(values[0], values[1], this.currentFaderValue);
+
+      // TODO why do we need to look this up rather than store in activeLockedParams?
+      this.trackedParametersById[id].apiObject.set("value", newValue);
+    });
+
+    this.state = previousState;
   };
 
   handleFaderButton = (inlet: Inlets, value: number) => {
@@ -84,15 +131,8 @@ export class LiveFader {
     } else if (this.state === State.Mapping) {
       if (!this.currentMappingScene!.isParameterLocked(parameter)) {
         this.currentMappingScene!.addLockedParameter(parameter, value);
-
-        if (this.trackedParametersById[parameterId] === undefined) {
-          this.trackedParametersById[parameterId] = new TrackedParameter(
-            this.liveParameterListener.activeParameter!,
-            value
-          );
-
-          this.log.debug(`Adding tracked parameter ${parameterId} with value ${value}`);
-        }
+        this.maybeAddTrackedParameter(parameter, value);
+        this.updateActiveLockedParameters();
       } else {
         this.currentMappingScene!.lockedParametersById[parameterId].lockedValue = value;
 
@@ -104,6 +144,17 @@ export class LiveFader {
       }
     } else if (this.state === State.Crossfading) {
       // Do nothing
+    }
+  };
+
+  maybeAddTrackedParameter = (parameter: LiveApiObject, value: number) => {
+    if (this.trackedParametersById[parameter.id] === undefined) {
+      this.trackedParametersById[parameter.id] = new TrackedParameter(
+        this.liveParameterListener.activeParameter!,
+        value
+      );
+
+      this.log.debug(`Adding tracked parameter ${parameter.id} with value ${value}`);
     }
   };
 
@@ -121,6 +172,30 @@ export class LiveFader {
         }
       });
     });
+  };
+
+  updateActiveLockedParameters = () => {
+    // Use a dictionary for easier construction of the array
+    const activeLockedParametersObj: Record<number, [LockedParameter?, LockedParameter?]> = {};
+
+    this.activeScenes[0].forEachLockedParameter((lockedParameter) => {
+      activeLockedParametersObj[lockedParameter.parameterId] = [lockedParameter, undefined];
+    });
+
+    this.activeScenes[1].forEachLockedParameter((lockedParameter) => {
+      if (activeLockedParametersObj[lockedParameter.parameterId]) {
+        activeLockedParametersObj[lockedParameter.parameterId][1] = lockedParameter;
+      } else {
+        activeLockedParametersObj[lockedParameter.parameterId] = [undefined, lockedParameter];
+      }
+    });
+
+    this.log.verbose(activeLockedParametersObj);
+
+    // Convert it to an array
+    this.activeLockedParameters = Object.keys(activeLockedParametersObj).map(
+      (k) => activeLockedParametersObj[k]
+    );
   };
 
   openFullScreen = () => {

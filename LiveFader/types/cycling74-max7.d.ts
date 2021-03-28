@@ -1586,7 +1586,7 @@ declare class Task {
    * See documentation for an example.
    * @param {number} times [description]
    */
-  repeat(times: number): void;
+  repeat(times?: number): void;
 
   /**
    * Run the task once, right now. Equivalent to calling the task function with its arguments.

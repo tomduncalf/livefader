@@ -13,7 +13,11 @@ export class ParameterScene {
   constructor(public name: string) {}
 
   isParameterLocked = (parameter: LiveApiObject) => {
-    return this.lockedParametersById[parameter.id] !== undefined;
+    return this.isParameterLockedById(parameter.id);
+  };
+
+  isParameterLockedById = (parameterId: number) => {
+    return this.lockedParametersById[parameterId] !== undefined;
   };
 
   addLockedParameter = (parameter: LiveApiObject, value: number) => {
@@ -21,7 +25,7 @@ export class ParameterScene {
       `Adding locked parameter ${parameter.id} with target ${value} to scene ${this.name}`
     );
 
-    this.lockedParametersById[parameter.id] = new LockedParameter(parameter.Id, value);
+    this.lockedParametersById[parameter.id] = new LockedParameter(parameter.id, value);
   };
 
   forEachLockedParameter = (fn: (lockedParameter: LockedParameter, index: number) => void) => {

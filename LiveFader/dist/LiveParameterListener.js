@@ -3,6 +3,11 @@ exports.__esModule = true;
 exports.LiveParameterListener = void 0;
 var lib_maxForLiveUtils_1 = require("./lib_maxForLiveUtils");
 var lib_Log_1 = require("./lib_Log");
+/**
+ * A LiveParameterListener listens for changes to the active track, active device,
+ * active parameter and value of the active parameter in an Ableton Live set and
+ * calls the corresponding onActive...Changed callback when one changes.
+ */
 var LiveParameterListener = /** @class */ (function () {
     function LiveParameterListener() {
         var _this = this;

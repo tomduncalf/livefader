@@ -1,16 +1,21 @@
 import { getLiveObjectById } from "./lib_maxForLiveUtils";
 import { Log } from "./lib_Log";
 
+/**
+ * A LiveParameterListener listens for changes to the active track, active device,
+ * active parameter and value of the active parameter in an Ableton Live set and
+ * calls the corresponding onActive...Changed callback when one changes.
+ */
 export class LiveParameterListener {
   log = new Log("LiveParameterListener");
 
-  onActiveParameterChanged: (parameter: LiveAPIObject) => void = () => {};
+  onActiveParameterChanged: (parameter: LiveApiObject) => void = () => {};
   onActiveParameterValueChanged: (value: number) => void = () => {};
 
   private activeTrackPath = "";
   private activeDevicePath = "";
   private activeParameterPath = "";
-  private activeParameter?: LiveAPIObject;
+  private activeParameter?: LiveApiObject;
 
   private trackListener!: LiveAPI;
   private deviceListener!: LiveAPI;

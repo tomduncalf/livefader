@@ -1,10 +1,11 @@
 import { log } from "./lib_Log";
-import { LiveParameterListener } from "./LiveParameterListener";
+import { LiveFader } from "./LiveFader";
 
 log("__________________");
 log("Script reloaded at: " + new Date());
 
-const listener = new LiveParameterListener();
+const liveFader = new LiveFader();
+log(liveFader.state);
 
 // .ts files with this at the end become a script usable in a [js] or [jsui] object
 let module = {};

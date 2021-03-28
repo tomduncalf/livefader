@@ -1,14 +1,34 @@
-import { log } from "./lib_Log";
+import { Log, log } from "./lib_Log";
 
 export class LockedParameter {
   constructor(public parameterId: number, public lockedValue: number) {}
 }
 
 export class ParameterScene {
+  log = new Log("ParameterScene");
+
   description: string = "";
-  lockedParameters: LockedParameter[] = [];
+  lockedParametersById: Record<number, LockedParameter> = {};
 
   constructor(public name: string) {}
+
+  isParameterLocked = (parameter: LiveApiObject) => {
+    return this.lockedParametersById[parameter.id] !== undefined;
+  };
+
+  addLockedParameter = (parameter: LiveApiObject, value: number) => {
+    this.log.debug(
+      `Adding locked parameter ${parameter.id} with target ${value} to scene ${this.name}`
+    );
+
+    this.lockedParametersById[parameter.id] = new LockedParameter(parameter.Id, value);
+  };
+
+  forEachLockedParameter = (fn: (lockedParameter: LockedParameter, index: number) => void) => {
+    Object.keys(this.lockedParametersById).forEach((key, index) => {
+      fn(this.lockedParametersById[key], index);
+    });
+  };
 }
 
 export class TrackedParameter {
@@ -32,7 +52,6 @@ export class TrackedParameters {
   };
 
   updateTrackedParameterValue = (id: number, value: number) => {
-    if (this.isParameterTracked(id))
-      this.trackedParametersById[id].lastUserValue = value;
+    if (this.isParameterTracked(id)) this.trackedParametersById[id].lastUserValue = value;
   };
 }

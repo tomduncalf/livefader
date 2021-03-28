@@ -18,6 +18,12 @@ export const LOG_CONFIG = {
     debug: true,
     verbose: true,
   } as LogConfig,
+
+  ParameterScene: {
+    enabled: true,
+    debug: true,
+    verbose: true,
+  } as LogConfig,
 };
 
 export const LOG_ALL_MODULES = false;

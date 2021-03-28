@@ -72,41 +72,35 @@ export class LiveFader {
   };
 
   handleActiveParameterValueChanged = (value: number) => {
-    const parameterId = this.liveParameterListener.activeParameter!.id;
+    const parameter = this.liveParameterListener.activeParameter!;
+    const parameterId = parameter.id;
 
     if (this.state === State.Normal) {
       if (this.trackedParametersById[parameterId] !== undefined) {
-        this.log.verbose(`Updating last tracked value of parameter ${parameterId} to ${value}`);
         this.trackedParametersById[parameterId].lastUserValue = value;
+
+        this.log.verbose(`Updating last tracked value of parameter ${parameterId} to ${value}`);
       }
     } else if (this.state === State.Mapping) {
-      if (this.currentMappingScene!.lockedParameters[parameterId] === undefined) {
-        this.log.debug(
-          `Adding locked parameter ${parameterId} with target ${value} to scene ${
-            this.currentMappingScene!.name
-          }`
-        );
-
-        this.currentMappingScene!.lockedParameters[parameterId] = new LockedParameter(
-          parameterId,
-          value
-        );
+      if (!this.currentMappingScene!.isParameterLocked(parameter)) {
+        this.currentMappingScene!.addLockedParameter(parameter, value);
 
         if (this.trackedParametersById[parameterId] === undefined) {
-          this.log.debug(`Adding tracked parameter ${parameterId} with value ${value}`);
-
           this.trackedParametersById[parameterId] = new TrackedParameter(
             this.liveParameterListener.activeParameter!,
             value
           );
+
+          this.log.debug(`Adding tracked parameter ${parameterId} with value ${value}`);
         }
       } else {
+        this.currentMappingScene!.lockedParametersById[parameterId].lockedValue = value;
+
         this.log.verbose(
-          `Update locked parameter ${parameterId} target to ${value} in scene ${
+          `Updating locked parameter ${parameterId} target to ${value} in scene ${
             this.currentMappingScene!.name
           }`
         );
-        this.currentMappingScene!.lockedParameters[parameterId].lockedValue = value;
       }
     } else if (this.state === State.Crossfading) {
       // Do nothing
@@ -117,7 +111,7 @@ export class LiveFader {
     this.trackedParametersById = {};
 
     this.scenes.forEach((scene) => {
-      scene.lockedParameters.forEach((lockedParameter) => {
+      scene.forEachLockedParameter((lockedParameter) => {
         if (!this.trackedParametersById[lockedParameter.parameterId]) {
           const apiObject = getLiveObjectById(lockedParameter.parameterId);
           this.trackedParametersById[lockedParameter.parameterId] = new TrackedParameter(

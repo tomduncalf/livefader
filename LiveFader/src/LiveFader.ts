@@ -90,7 +90,7 @@ export class LiveFader {
   };
 
   setState = (state: State) => {
-    this.log.debug(`Entering state ${state}`);
+    // this.log.verbose(`Entering state ${state}`);
     this.state = state;
   };
 
@@ -127,6 +127,10 @@ export class LiveFader {
     if (value === 0) {
       this.log.debug(`Enter normal mode`);
 
+      if (this.state === State.Mapping) {
+        // reset mapped values
+      }
+
       this.setState(State.Normal);
       this.currentMappingScene = undefined;
     } else {
@@ -150,7 +154,11 @@ export class LiveFader {
       if (this.trackedParametersById[parameterId] !== undefined) {
         this.trackedParametersById[parameterId].lastUserValue = value;
 
-        this.log.verbose(`Updating last tracked value of parameter ${parameterId} to ${value}`);
+        this.log.verbose(
+          `Updating last tracked value of parameter ${parameterId} (${parameter.get(
+            "name"
+          )}) to ${value}`
+        );
       }
     } else if (this.state === State.Mapping) {
       if (!this.currentMappingScene!.isParameterLocked(parameter)) {

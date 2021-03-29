@@ -18,10 +18,12 @@ export class LiveParameterListener {
 
   private activeDevice?: LiveApiObject;
   private activeParameter?: LiveApiObject;
-  private activeDeviceIsSelf = false;
+
+  private isActiveDeviceSelf = false;
 
   private activeTrackPath = "";
   private activeDevicePath = "";
+  private activeDeviceName = "";
   private activeParameterPath = "";
 
   private trackListener!: LiveAPI;
@@ -40,9 +42,9 @@ export class LiveParameterListener {
 
   setupParameterValueListener = () => {
     this.parameterValueListener = new LiveAPI((v: any[]) => {
-      this.log.verbose("propertyValueListener " + v);
+      this.log.verbose(`propertyValueListener ${this.activeDeviceName}: ${v}`);
 
-      if (!this.activeDeviceIsSelf)
+      if (!this.isActiveDeviceSelf)
         this.onActiveParameterValueChanged(v[1], this.activeParameter!, this.activeDevice!);
     });
   };
@@ -61,7 +63,7 @@ export class LiveParameterListener {
         this.activeParameterPath = this.activeParameter.unquotedpath;
         this.resetParameterValueListener();
 
-        if (!this.activeDeviceIsSelf)
+        if (!this.isActiveDeviceSelf)
           this.onActiveParameterChanged(this.activeParameter, this.activeDevice!);
       }
     });
@@ -82,10 +84,12 @@ export class LiveParameterListener {
         this.activeDevicePath = this.activeDevice.unquotedpath;
         this.resetParameterListener();
 
-        const name = this.activeDevice.get<string>("name");
-        this.activeDeviceIsSelf = name === "LiveFader"; // TODO must be a better way to do this
+        // TODO wrapper with getAsString method
+        const name = this.activeDevice.get<string>("name").toString();
+        this.activeDeviceName = name;
+        this.isActiveDeviceSelf = name === "LiveFader";
 
-        this.log.verbose("deviceListener " + this.activeDevice.get("name"));
+        this.log.debug("deviceListener " + this.activeDevice.get("name"));
       }
     });
   };

@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "dev": "tsc --watch",
+    "tsc-watch": "tsc --watch",
     "touch": "touch dist/main.js",
-    "watch": "concurrently 'npm-watch' 'yarn dev'"
+    "dev": "concurrently 'npm-watch' 'yarn tsc-watch'"
   },
   "watch": {
     "touch": {

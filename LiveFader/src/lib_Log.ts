@@ -2,7 +2,7 @@ import { LOG_ALL_MODULES, LOG_CONFIG, LOG_TO_OUTLET, OUTLET_LOG_LINES } from "./
 
 let outletLog: string[] = [];
 
-export const log = (x: any, y?: any, z?: any) => {
+export function log(x: any, y?: any, z?: any) {
   for (var i = 0, len = arguments.length; i < len; i++) {
     var message = arguments[i];
     var outMessage;
@@ -27,7 +27,7 @@ export const log = (x: any, y?: any, z?: any) => {
     }
   }
   post("\n");
-};
+}
 
 export enum LogLevels {
   Debug = "debug",

@@ -181,10 +181,7 @@ export class LiveFader {
 
   maybeAddTrackedParameter = (parameter: LiveApiObject, value: number) => {
     if (this.trackedParametersById[parameter.id] === undefined) {
-      this.trackedParametersById[parameter.id] = new TrackedParameter(
-        this.liveParameterListener.activeParameter!,
-        value
-      );
+      this.trackedParametersById[parameter.id] = new TrackedParameter(parameter, value);
 
       this.log.debug(`Adding tracked parameter ${parameter.id} with value ${value}`);
     }
@@ -234,7 +231,7 @@ export class LiveFader {
 
     // Convert it to an array
     this.activeLockedParameters = Object.keys(activeLockedParametersObj).map(
-      (k) => activeLockedParametersObj[k]
+      (k) => activeLockedParametersObj[Number(k)]
     );
   };
 

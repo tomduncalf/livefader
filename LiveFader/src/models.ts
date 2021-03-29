@@ -30,6 +30,7 @@ export class ParameterScene {
 
   forEachLockedParameter = (fn: (lockedParameter: LockedParameter, index: number) => void) => {
     Object.keys(this.lockedParametersById).forEach((key, index) => {
+      // @ts-ignore
       fn(this.lockedParametersById[key], index);
     });
   };
@@ -39,7 +40,7 @@ export class TrackedParameter {
   constructor(public apiObject: LiveApiObject, public lastUserValue: number) {}
 }
 
-export class TrackedParameters {
+/*export class TrackedParameters {
   private trackedParametersById: Record<number, TrackedParameter> = {};
 
   isParameterTracked = (id: number) => {
@@ -58,4 +59,4 @@ export class TrackedParameters {
   updateTrackedParameterValue = (id: number, value: number) => {
     if (this.isParameterTracked(id)) this.trackedParametersById[id].lastUserValue = value;
   };
-}
+}*/

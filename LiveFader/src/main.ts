@@ -12,6 +12,7 @@ let instance: LiveFader;
 // Defer startup until we get a bang from live.thisdevice otherwise Live API will not be ready
 function bang() {
   instance = new LiveFader();
+  // @ts-ignore
   instance.patcher = this.patcher;
 }
 

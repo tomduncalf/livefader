@@ -12,3 +12,4 @@ Save frozen project to a different filename and don't unfreeze it as the unfroze
 
 - No subdirectories
 - LiveAPI observers leak when hot reloading
+- Hot reloading can be dodgy: reload js by "renaming" live object, or destroy + reload live device

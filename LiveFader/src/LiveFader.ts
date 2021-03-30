@@ -1,6 +1,6 @@
 import { log, Log } from "./lib_Log";
 import { lerp } from "./lib_math";
-import { getLiveObjectById } from "./lib_maxForLiveUtils";
+import { getLiveApiObjectById } from "./lib_maxForLiveUtils";
 import { LiveParameterListener } from "./LiveParameterListener";
 import { LockedParameter, ParameterScene, TrackedParameter } from "./models";
 
@@ -193,7 +193,7 @@ export class LiveFader {
     this.scenes.forEach((scene) => {
       scene.forEachLockedParameter((lockedParameter) => {
         if (!this.trackedParametersById[lockedParameter.parameterId]) {
-          const apiObject = getLiveObjectById(lockedParameter.parameterId);
+          const apiObject = getLiveApiObjectById(lockedParameter.parameterId);
           this.trackedParametersById[lockedParameter.parameterId] = new TrackedParameter(
             apiObject,
             apiObject.get("value")

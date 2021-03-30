@@ -8,7 +8,7 @@ export const LOG_CONFIG = {
   LiveParameterListener: {
     enabled: true,
     debug: true,
-    verbose: false,
+    verbose: true,
   } as LogConfig,
 
   LiveFader: {
@@ -18,6 +18,12 @@ export const LOG_CONFIG = {
   } as LogConfig,
 
   ParameterScene: {
+    enabled: true,
+    debug: true,
+    verbose: true,
+  } as LogConfig,
+
+  LiveApiObjectWrapper: {
     enabled: true,
     debug: true,
     verbose: true,

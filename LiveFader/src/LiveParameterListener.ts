@@ -1,4 +1,4 @@
-import { getLiveObjectById } from "./lib_maxForLiveUtils";
+import { getLiveApiObjectById, getLiveApiParameterById } from "./lib_maxForLiveUtils";
 import { Log } from "./lib_Log";
 
 /**
@@ -32,7 +32,7 @@ export class LiveParameterListener {
   private parameterValueListener!: LiveAPI;
 
   constructor() {
-    this.log.debug("constructor");
+    this.log.debug("LiveParameterListener constructed");
 
     this.setupParameterValueListener();
     this.setupParameterListener();
@@ -59,7 +59,8 @@ export class LiveParameterListener {
       this.log.verbose("parameterListener " + v);
 
       if (v[0] === "selected_parameter" && v[2] > 0) {
-        this.activeParameter = getLiveObjectById(v[2]);
+        this.activeParameter = getLiveApiObjectById(v[2]);
+        // this.log.debug("DEVICE " + getLiveApiParameterById(v[2]).getDevice());
         this.activeParameterPath = this.activeParameter.unquotedpath;
         this.resetParameterValueListener();
 
@@ -80,7 +81,7 @@ export class LiveParameterListener {
       this.log.verbose("deviceListener " + v);
 
       if (v[0] === "selected_device") {
-        this.activeDevice = getLiveObjectById(v[2]);
+        this.activeDevice = getLiveApiObjectById(v[2]);
         this.activeDevicePath = this.activeDevice.unquotedpath;
         this.resetParameterListener();
 
@@ -104,7 +105,7 @@ export class LiveParameterListener {
       this.log.debug("trackListener " + v);
 
       if (v[0] === "selected_track") {
-        var track = getLiveObjectById(v[2]);
+        var track = getLiveApiObjectById(v[2]);
         this.activeTrackPath = track.unquotedpath;
         this.log.verbose("track " + track.get("name"));
 

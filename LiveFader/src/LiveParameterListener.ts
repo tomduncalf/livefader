@@ -61,7 +61,7 @@ export class LiveParameterListener {
       if (v[0] === "selected_parameter" && v[2] > 0) {
         this.activeParameter = getLiveApiObjectById(v[2]);
 
-        this.log.debug("DEVICE " + getLiveApiParameter(v[2]).getDevice()?.getName());
+        this.log.debug("DEVICE " + getLiveApiParameter(v[2]).getDevice()?.name);
 
         this.activeParameterPath = this.activeParameter.unquotedpath;
         this.resetParameterValueListener();

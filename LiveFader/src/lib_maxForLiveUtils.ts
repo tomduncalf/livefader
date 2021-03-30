@@ -1,17 +1,15 @@
-import { Log, log } from "./lib_Log";
-
-const liveApiObjectCacheById: Record<number, any> = {};
+import { Log } from "./lib_Log";
 
 export class LiveApiObjectWrapper {
   log = new Log("LiveApiObjectWrapper");
 
   constructor(public apiObject: LiveApiObject) {}
 
-  getPath() {
+  get path() {
     return this.apiObject.unquotedpath;
   }
 
-  getName() {
+  get name() {
     return this.getStringProperty("name");
   }
 
@@ -19,6 +17,7 @@ export class LiveApiObjectWrapper {
     this.apiObject.get(path) as T;
   };
 
+  // Strings returned from the M4L API are not real strings which can trip you up
   getStringProperty = (path: string) => this.apiObject.get(path).toString();
 }
 
@@ -27,23 +26,28 @@ export class LiveApiDevice extends LiveApiObjectWrapper {}
 export class LiveApiParameter extends LiveApiObjectWrapper {
   device?: LiveApiDevice;
 
-  // path is like "live_set tracks 0 devices 1 parameters 2"
   getDevice = () => {
     if (this.device) return this.device;
 
-    const matches = this.getPath().match(/(live_set tracks \d+ devices \d+)/);
+    const matches = this.path.match(/(live_set tracks \d+ devices \d+)/);
     if (!matches || !matches[1]) {
-      this.log.error(`getDevice: Path "${this.getPath()}" did not match regex`);
+      this.log.error(`getDevice: Path "${this.path}" did not match regex`);
       return undefined;
     }
 
     const devicePath = matches[1];
     const device = getLiveApiDevice(devicePath);
     this.device = device;
+
     return device;
   };
 }
 
+// Keep a cache of LiveAPI objects by ID to speed up working with then,
+// as the ID reference should remain stable for a given session
+const liveApiObjectCacheById: Record<number, any> = {};
+
+// The docs claim you should be able to call new LiveAPI(id) but it doesn't seem to work
 export const getLiveApiObjectById = (id: number) => {
   const apiObject = new LiveAPI();
   apiObject.id = Number(id);
@@ -57,7 +61,7 @@ export const getLiveApiObjectByPath = (path: string) => {
 
 const getWrappedLiveApiObject = <T extends LiveApiObjectWrapper>(
   idOrPath: number | string,
-  ctor: new (apiObject: LiveApiObject) => T
+  objectClass: new (apiObject: LiveApiObject) => T
 ): T => {
   let rawApiObject: LiveApiObject;
 
@@ -69,7 +73,7 @@ const getWrappedLiveApiObject = <T extends LiveApiObjectWrapper>(
     rawApiObject = getLiveApiObjectById(idOrPath);
   }
 
-  const wrapper = new ctor(rawApiObject);
+  const wrapper = new objectClass(rawApiObject);
   liveApiObjectCacheById[rawApiObject.id] = wrapper;
 
   return wrapper;

@@ -11,11 +11,15 @@ export class LiveApiObjectWrapper {
     return this.apiObject.unquotedpath;
   }
 
-  getPropertyValue = <T = number>(path: string) => {
+  getName() {
+    return this.getStringProperty("name");
+  }
+
+  getProperty = <T = number>(path: string) => {
     this.apiObject.get(path) as T;
   };
 
-  getStringPropertyValue = (path: string) => this.apiObject.get(path).toString();
+  getStringProperty = (path: string) => this.apiObject.get(path).toString();
 }
 
 export class LiveApiDevice extends LiveApiObjectWrapper {}
@@ -27,16 +31,14 @@ export class LiveApiParameter extends LiveApiObjectWrapper {
   getDevice = () => {
     if (this.device) return this.device;
 
-    const matches = this.getPath().match(/(?<devicePath>live_set tracks \d+ devices \d+)/);
+    const matches = this.getPath().match(/(live_set tracks \d+ devices \d+)/);
     if (!matches || !matches[1]) {
       this.log.error(`getDevice: Path "${this.getPath()}" did not match regex`);
       return undefined;
     }
 
     const devicePath = matches[1];
-    const device = getLiveApiDeviceById(devicePath);
-    this.log.debug("DEVICE", device);
-
+    const device = getLiveApiDevice(devicePath);
     this.device = device;
     return device;
   };
@@ -48,24 +50,35 @@ export const getLiveApiObjectById = (id: number) => {
   return apiObject;
 };
 
-const getWrappedLiveApiObjectById = <T extends LiveApiObjectWrapper>(
-  id: number,
+export const getLiveApiObjectByPath = (path: string) => {
+  const apiObject = new LiveAPI(path);
+  return apiObject;
+};
+
+const getWrappedLiveApiObject = <T extends LiveApiObjectWrapper>(
+  idOrPath: number | string,
   ctor: new (apiObject: LiveApiObject) => T
 ): T => {
-  if (liveApiObjectCacheById[id]) return liveApiObjectCacheById[id];
+  let rawApiObject: LiveApiObject;
 
-  const apiObject = new LiveAPI(id);
+  if (typeof idOrPath === "string") {
+    rawApiObject = getLiveApiObjectByPath(idOrPath);
+  } else {
+    if (liveApiObjectCacheById[idOrPath]) return liveApiObjectCacheById[idOrPath];
 
-  const wrapper = new ctor(apiObject);
-  liveApiObjectCacheById[id] = wrapper;
+    rawApiObject = getLiveApiObjectById(idOrPath);
+  }
+
+  const wrapper = new ctor(rawApiObject);
+  liveApiObjectCacheById[rawApiObject.id] = wrapper;
 
   return wrapper;
 };
 
-export const getLiveApiDeviceById = (id: number): LiveApiDevice => {
-  return getWrappedLiveApiObjectById(id, LiveApiDevice);
+export const getLiveApiDevice = (idOrPath: number | string): LiveApiDevice => {
+  return getWrappedLiveApiObject(idOrPath, LiveApiDevice);
 };
 
-export const getLiveApiParameterById = (id: number): LiveApiParameter => {
-  return getWrappedLiveApiObjectById(id, LiveApiParameter);
+export const getLiveApiParameter = (idOrPath: number | string): LiveApiParameter => {
+  return getWrappedLiveApiObject(idOrPath, LiveApiParameter);
 };

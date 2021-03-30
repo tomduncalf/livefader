@@ -7,7 +7,7 @@
     "noImplicitAny": true,
     "allowUnreachableCode": true,
     "sourceMap": false,
-    "lib": ["es7"],
+    "lib": ["es5"],
     "outDir": "dist/"
   },
   "include": ["src/*.ts", "types/*.d.ts"]

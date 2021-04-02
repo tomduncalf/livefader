@@ -2,7 +2,7 @@ import { log, Log } from "./lib_Log";
 import { lerp } from "./lib_math";
 import { getLiveApiObjectById, LiveApiDevice, LiveApiParameter } from "./lib_maxForLiveUtils";
 import { LiveParameterListener } from "./LiveParameterListener";
-import { LockedParameter, ParameterScene, TrackedParameter } from "./models";
+import { LockedParameter, ParameterScene, SavedState, TrackedParameter } from "./models";
 
 const CHAR_CODE_A = 65;
 
@@ -10,7 +10,6 @@ enum Inlets {
   LeftButton,
   RightButton,
   Fader,
-  FullScreenButton,
 }
 
 export enum Outlets {
@@ -38,6 +37,7 @@ export class LiveFader {
 
   scenes: ParameterScene[];
   activeScenes: ParameterScene[];
+  activeSceneIndices: [number, number];
 
   // Keep a reference to the parameters which are locked by either of the current scenes
   // so we don't have to calculate this every time the crossfader changes
@@ -66,6 +66,7 @@ export class LiveFader {
     );
 
     this.activeScenes = [this.scenes[0], this.scenes[1]];
+    this.activeSceneIndices = [0, 1];
 
     this.liveParameterListener.onActiveParameterValueChanged = this.handleActiveParameterValueChanged;
 
@@ -82,8 +83,6 @@ export class LiveFader {
   handleMessage = (inlet: Inlets, value: number) => {
     if (inlet === Inlets.LeftButton || inlet === Inlets.RightButton) {
       this.handleFaderButton(inlet, value);
-    } else if (inlet === Inlets.FullScreenButton) {
-      this.openFullScreen();
     } else if (inlet === Inlets.Fader) {
       this.handleFader(value);
     }
@@ -229,6 +228,7 @@ export class LiveFader {
     });
 
     this.activeScenes[1].forEachLockedParameter((lockedParameter) => {
+      log(lockedParameter);
       if (activeLockedParametersObj[lockedParameter.parameterId]) {
         activeLockedParametersObj[
           lockedParameter.parameterId
@@ -254,5 +254,33 @@ export class LiveFader {
     this.patcher.message("script", "send", "window", "flags", "float");
     this.patcher.message("script", "send", "window", "exec");
     this.patcher.front();
+  };
+
+  dumpSavedState = () => {
+    const state: SavedState = {
+      scenes: this.scenes.map((s) => ({
+        name: s.name,
+        description: s.description,
+        lockedParameters: Object.keys(s.lockedParametersById).map(
+          (k) => s.lockedParametersById[k as any]
+        ),
+      })),
+      activeSceneIndices: this.activeSceneIndices,
+    };
+
+    this.log.debug(state);
+  };
+
+  loadSavedState = (savedState: string) => {
+    const parsed: SavedState = JSON.parse(savedState);
+
+    this.scenes = parsed.scenes.map((s) => ParameterScene.hydrateFromSavedState(s));
+    this.activeScenes = [
+      this.scenes[parsed.activeSceneIndices[0]],
+      this.scenes[parsed.activeSceneIndices[1]],
+    ];
+
+    this.initialiseTrackedParameters();
+    this.updateActiveLockedParameters();
   };
 }

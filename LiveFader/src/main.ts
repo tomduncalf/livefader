@@ -22,6 +22,14 @@ function cleanup() {
   instance.cleanup();
 }
 
+function fullscreen() {
+  instance.openFullScreen();
+}
+
+function dump() {
+  instance.dumpSavedState();
+}
+
 // Need to hook up to inlets/outlets at this main entry point
 function msg_int(value: number) {
   if (instance) instance.handleMessage(inlet, value);

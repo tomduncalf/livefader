@@ -1,8 +1,19 @@
 import { Log, log } from "./lib_Log";
 import { LiveApiParameter } from "./lib_maxForLiveUtils";
 
+export interface SavedState {
+  scenes: SavedScene[];
+  activeSceneIndices: [number, number];
+}
+
+export interface SavedScene {
+  name: string;
+  description: string;
+  lockedParameters: LockedParameter[];
+}
+
 export class LockedParameter {
-  constructor(public parameterId: number, public lockedValue: number) {}
+  constructor(public parameterId: number, public path: string, public lockedValue: number) {}
 }
 
 export class ParameterScene {
@@ -12,6 +23,26 @@ export class ParameterScene {
   lockedParametersById: Record<number, LockedParameter> = {};
 
   constructor(public name: string) {}
+
+  // We need to rediscover each locked parameter's id on loading state as it could have changed
+  static hydrateFromSavedState = (savedState: SavedScene) => {
+    const scene = new ParameterScene(savedState.name);
+
+    scene.lockedParametersById = savedState.lockedParameters.reduce((obj, lockedParameter) => {
+      const liveParameter = LiveApiParameter.get(lockedParameter.path);
+      const parameter = new LockedParameter(
+        liveParameter.id,
+        lockedParameter.path,
+        lockedParameter.lockedValue
+      );
+
+      obj[Number(liveParameter.id)] = parameter;
+
+      return obj;
+    }, {} as Record<number, LockedParameter>);
+
+    return scene;
+  };
 
   isParameterLocked = (parameter: LiveApiParameter) => {
     return this.isParameterLockedById(parameter.id);
@@ -26,7 +57,11 @@ export class ParameterScene {
       `Adding locked parameter ${parameter.id} with target ${value} to scene ${this.name}`
     );
 
-    this.lockedParametersById[parameter.id] = new LockedParameter(parameter.id, value);
+    this.lockedParametersById[parameter.id] = new LockedParameter(
+      parameter.id,
+      parameter.path,
+      value
+    );
   };
 
   forEachLockedParameter = (fn: (lockedParameter: LockedParameter, index: number) => void) => {

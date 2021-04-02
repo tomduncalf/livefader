@@ -101,6 +101,8 @@ export class LiveFader {
   updateFader = () => {
     if (this.currentFaderValue === this.lastFaderValue) return;
 
+    this.log.verbose(`Update fader to ${this.currentFaderValue}`);
+
     this.handleFaderUpdate();
     this.lastFaderValue = this.currentFaderValue;
   };

@@ -26,7 +26,7 @@ export const LOG_CONFIG = {
   LiveApiObjectWrapper: {
     enabled: true,
     debug: true,
-    verbose: true,
+    verbose: false,
   } as LogConfig,
 };
 

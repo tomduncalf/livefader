@@ -93,7 +93,7 @@ const getWrappedLiveApiObject = <T extends LiveApiObjectWrapper>(
   idOrPath: number | string,
   objectClass: new (apiObject: LiveApiObject) => T
 ): T => {
-  log.verbose(`getWrappedLiveApiObject ${idOrPath}`);
+  // log.verbose(`getWrappedLiveApiObject ${idOrPath}`);
 
   let rawApiObject: LiveApiObject;
 

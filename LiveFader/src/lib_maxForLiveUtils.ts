@@ -7,7 +7,7 @@ export class LiveApiObjectWrapper {
     return getWrappedLiveApiObject(idOrPath, LiveApiObjectWrapper);
   }
 
-  constructor(public apiObject: LiveApiObject) {}
+  constructor(public apiObject: LiveAPI) {}
 
   get path() {
     return this.apiObject.unquotedpath;
@@ -18,7 +18,7 @@ export class LiveApiObjectWrapper {
   }
 
   get id() {
-    return this.apiObject.id;
+    return Number(this.apiObject.id);
   }
 
   getProperty = <T = number>(path: string) => {
@@ -51,6 +51,8 @@ export class LiveApiParameter extends LiveApiObjectWrapper {
   }
 
   setValue = (value: number) => {
+    log.verbose(`Setting value ${value} for ${this.name}`);
+
     this.apiObject.set("value", value);
   };
 
@@ -89,18 +91,21 @@ export const getLiveApiObjectByPath = (path: string) => {
   return apiObject;
 };
 
+const CACHE_LIVE_OBJECTS: true = true;
+
 const getWrappedLiveApiObject = <T extends LiveApiObjectWrapper>(
   idOrPath: number | string,
-  objectClass: new (apiObject: LiveApiObject) => T
+  objectClass: new (apiObject: LiveAPI) => T
 ): T => {
-  // log.verbose(`getWrappedLiveApiObject ${idOrPath}`);
+  log.verbose(`getWrappedLiveApiObject ${idOrPath}`);
 
-  let rawApiObject: LiveApiObject;
+  let rawApiObject: LiveAPI;
 
   if (typeof idOrPath === "string") {
     rawApiObject = getLiveApiObjectByPath(idOrPath);
   } else {
-    if (liveApiObjectCacheById[idOrPath]) return liveApiObjectCacheById[idOrPath];
+    if (CACHE_LIVE_OBJECTS && liveApiObjectCacheById[idOrPath])
+      return liveApiObjectCacheById[idOrPath];
 
     rawApiObject = getLiveApiObjectById(idOrPath);
   }

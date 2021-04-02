@@ -133,11 +133,25 @@ export class LiveFader {
     if (value === 0) {
       this.log.debug(`Enter normal mode`);
 
-      if (this.state === State.Mapping) {
-        // reset mapped values
+      const wasMapping = this.state === State.Mapping;
+      this.setState(State.Normal);
+
+      if (wasMapping) {
+        this.log.debug(this.currentMappingScene);
+
+        // TODO why not store parameter object in lockedParameters?
+        this.currentMappingScene?.forEachLockedParameter((lockedParameter) => {
+          const parameter = LiveApiParameter.get(lockedParameter.parameterId);
+          parameter.setValue(this.trackedParametersById[parameter.id].lastUserValue);
+
+          this.log.debug(
+            "set",
+            lockedParameter.parameterId,
+            this.trackedParametersById[parameter.id].lastUserValue
+          );
+        });
       }
 
-      this.setState(State.Normal);
       this.currentMappingScene = undefined;
     } else {
       this.log.debug(
@@ -150,14 +164,12 @@ export class LiveFader {
   };
 
   handleActiveParameterValueChanged = (value: number, parameter: LiveApiParameter) => {
-    const parameterId = parameter.id;
-
     if (this.state === State.Normal) {
-      if (this.trackedParametersById[parameterId] !== undefined) {
-        this.trackedParametersById[parameterId].lastUserValue = value;
+      if (this.trackedParametersById[parameter.id] !== undefined) {
+        this.trackedParametersById[parameter.id].lastUserValue = value;
 
         this.log.verbose(
-          `Updating last tracked value of parameter ${parameterId} (${parameter.name}) to ${value}`
+          `Updating last tracked value of parameter ${parameter.id} (${parameter.name}) to ${value}`
         );
       }
     } else if (this.state === State.Mapping) {
@@ -166,13 +178,15 @@ export class LiveFader {
         this.maybeAddTrackedParameter(parameter, value);
         this.updateActiveLockedParameters();
       } else {
-        this.currentMappingScene!.lockedParametersById[parameterId].lockedValue = value;
+        this.currentMappingScene!.lockedParametersById[parameter.id].lockedValue = value;
 
         this.log.verbose(
-          `Updating locked parameter ${parameter.name} ${parameterId} target to ${value} in scene ${
-            this.currentMappingScene!.name
-          }`
+          `Updating locked parameter ${parameter.name} ${
+            parameter.id
+          } target to ${value} in scene ${this.currentMappingScene!.name}`
         );
+
+        // this.log.debug(this.scenes);
       }
     } else if (this.state === State.Crossfading) {
       // Do nothing

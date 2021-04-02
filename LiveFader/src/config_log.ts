@@ -26,11 +26,15 @@ export const LOG_CONFIG = {
   LiveApiObjectWrapper: {
     enabled: true,
     debug: true,
-    verbose: false,
+    verbose: true,
   } as LogConfig,
 };
 
 export const LOG_ALL_MODULES = false;
+export const LOG_ALL_LEVEL = {
+  debug: false,
+  verbose: false,
+};
 
 export const LOG_TO_OUTLET = true;
 export const OUTLET_LOG_LINES = 10;

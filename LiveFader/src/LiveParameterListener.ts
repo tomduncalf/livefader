@@ -48,8 +48,13 @@ export class LiveParameterListener {
   setupParameterValueListener = () => {
     this.parameterValueListener = new LiveAPI((v: any[]) => {
       if (!this.activeParameter!.device!.isLiveFaderDevice) {
-        this.log.verbose(`propertyValueListener ${this.activeParameter!.device!.name}: ${v}`);
-        this.onActiveParameterValueChanged(v[1], this.activeParameter!);
+        this.log.verbose(
+          `propertyValueListener ${this.activeParameter!.device!.name} ${
+            this.activeParameter?.value
+          }`
+        );
+
+        this.onActiveParameterValueChanged(this.activeParameter?.value, this.activeParameter!);
       }
     });
   };

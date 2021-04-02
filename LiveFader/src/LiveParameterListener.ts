@@ -1,4 +1,4 @@
-import { getLiveApiObjectById, getLiveApiParameter } from "./lib_maxForLiveUtils";
+import { LiveApiDevice, LiveApiObjectWrapper, LiveApiParameter } from "./lib_maxForLiveUtils";
 import { Log } from "./lib_Log";
 
 /**
@@ -9,17 +9,11 @@ import { Log } from "./lib_Log";
 export class LiveParameterListener {
   log = new Log("LiveParameterListener");
 
-  onActiveParameterChanged: (parameter: LiveApiObject, device: LiveApiObject) => void = () => {};
-  onActiveParameterValueChanged: (
-    value: number,
-    parameter: LiveApiObject,
-    device: LiveApiObject
-  ) => void = () => {};
+  onActiveParameterChanged: (parameter: LiveApiParameter, device: LiveApiDevice) => void = () => {};
+  onActiveParameterValueChanged: (value: number, parameter: LiveApiParameter) => void = () => {};
 
-  private activeDevice?: LiveApiObject;
-  private activeParameter?: LiveApiObject;
-
-  private isActiveDeviceSelf = false;
+  private activeDevice?: LiveApiDevice;
+  private activeParameter?: LiveApiParameter;
 
   private activeTrackPath = "";
   private activeDevicePath = "";
@@ -42,10 +36,10 @@ export class LiveParameterListener {
 
   setupParameterValueListener = () => {
     this.parameterValueListener = new LiveAPI((v: any[]) => {
-      this.log.verbose(`propertyValueListener ${this.activeDeviceName}: ${v}`);
-
-      if (!this.isActiveDeviceSelf)
-        this.onActiveParameterValueChanged(v[1], this.activeParameter!, this.activeDevice!);
+      if (!this.activeParameter!.device!.isLiveFaderDevice) {
+        this.log.verbose(`propertyValueListener ${this.activeParameter!.device!.name}: ${v}`);
+        this.onActiveParameterValueChanged(v[1], this.activeParameter!);
+      }
     });
   };
 
@@ -59,20 +53,18 @@ export class LiveParameterListener {
       this.log.verbose("parameterListener " + v);
 
       if (v[0] === "selected_parameter" && v[2] > 0) {
-        this.activeParameter = getLiveApiObjectById(v[2]);
+        this.activeParameter = LiveApiParameter.get(v[2]);
 
-        this.log.debug("DEVICE " + getLiveApiParameter(v[2]).getDevice()?.name);
-
-        this.activeParameterPath = this.activeParameter.unquotedpath;
+        this.activeParameterPath = this.activeParameter.path;
         this.resetParameterValueListener();
 
-        if (!this.isActiveDeviceSelf)
+        if (!this.activeDevice?.isLiveFaderDevice)
           this.onActiveParameterChanged(this.activeParameter, this.activeDevice!);
       }
     });
   };
 
-  // Seems like we need to reset this whenever the device changes
+  // Seems like we need to reset this whenever the device changes, maybe I am doing something wrong!
   resetParameterListener = () => {
     this.parameterListener.property = "selected_parameter";
     this.parameterListener.path = "live_set view";
@@ -83,16 +75,11 @@ export class LiveParameterListener {
       this.log.verbose("deviceListener " + v);
 
       if (v[0] === "selected_device") {
-        this.activeDevice = getLiveApiObjectById(v[2]);
-        this.activeDevicePath = this.activeDevice.unquotedpath;
+        this.activeDevice = LiveApiDevice.get(v[2]);
+        this.activeDevicePath = this.activeDevice.path;
         this.resetParameterListener();
 
-        // TODO wrapper with getAsString method
-        const name = this.activeDevice.get<string>("name").toString();
-        this.activeDeviceName = name;
-        this.isActiveDeviceSelf = name === "LiveFader";
-
-        this.log.debug("deviceListener " + this.activeDevice.get("name"));
+        this.log.debug("deviceListener " + this.activeDevice.name);
       }
     });
   };
@@ -107,9 +94,9 @@ export class LiveParameterListener {
       this.log.debug("trackListener " + v);
 
       if (v[0] === "selected_track") {
-        var track = getLiveApiObjectById(v[2]);
-        this.activeTrackPath = track.unquotedpath;
-        this.log.verbose("track " + track.get("name"));
+        var track = LiveApiObjectWrapper.get(v[2]);
+        this.activeTrackPath = track.path;
+        this.log.verbose("track " + track.name);
 
         this.resetDeviceListener();
       }

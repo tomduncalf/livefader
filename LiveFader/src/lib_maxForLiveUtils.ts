@@ -1,7 +1,11 @@
 import { Log } from "./lib_Log";
 
+const log = new Log("LiveApiObjectWrapper");
+
 export class LiveApiObjectWrapper {
-  log = new Log("LiveApiObjectWrapper");
+  static get(idOrPath: number | string) {
+    return getWrappedLiveApiObject(idOrPath, LiveApiObjectWrapper);
+  }
 
   constructor(public apiObject: LiveApiObject) {}
 
@@ -13,6 +17,10 @@ export class LiveApiObjectWrapper {
     return this.getStringProperty("name");
   }
 
+  get id() {
+    return this.apiObject.id;
+  }
+
   getProperty = <T = number>(path: string) => {
     this.apiObject.get(path) as T;
   };
@@ -21,26 +29,48 @@ export class LiveApiObjectWrapper {
   getStringProperty = (path: string) => this.apiObject.get(path).toString();
 }
 
-export class LiveApiDevice extends LiveApiObjectWrapper {}
+export class LiveApiDevice extends LiveApiObjectWrapper {
+  static get(idOrPath: number | string) {
+    return getWrappedLiveApiObject(idOrPath, LiveApiDevice);
+  }
+
+  get isLiveFaderDevice() {
+    return this.name === "LiveFader";
+  }
+}
 
 export class LiveApiParameter extends LiveApiObjectWrapper {
-  device?: LiveApiDevice;
+  private _device?: LiveApiDevice;
 
-  getDevice = () => {
-    if (this.device) return this.device;
+  static get(idOrPath: number | string) {
+    return getWrappedLiveApiObject(idOrPath, LiveApiParameter);
+  }
+
+  get value() {
+    return this.apiObject.get("value");
+  }
+
+  setValue = (value: number) => {
+    this.apiObject.set("value", value);
+  };
+
+  get device() {
+    if (this._device) return this._device;
 
     const matches = this.path.match(/(live_set tracks \d+ devices \d+)/);
     if (!matches || !matches[1]) {
-      this.log.error(`getDevice: Path "${this.path}" did not match regex`);
+      log.error(`getDevice: Path "${this.path}" did not match regex`);
       return undefined;
     }
 
     const devicePath = matches[1];
-    const device = getLiveApiDevice(devicePath);
-    this.device = device;
+    const device = LiveApiDevice.get(devicePath);
+    this._device = device;
+
+    log.verbose(this._device);
 
     return device;
-  };
+  }
 }
 
 // Keep a cache of LiveAPI objects by ID to speed up working with then,
@@ -63,6 +93,8 @@ const getWrappedLiveApiObject = <T extends LiveApiObjectWrapper>(
   idOrPath: number | string,
   objectClass: new (apiObject: LiveApiObject) => T
 ): T => {
+  log.verbose(`getWrappedLiveApiObject: ${idOrPath}`);
+
   let rawApiObject: LiveApiObject;
 
   if (typeof idOrPath === "string") {
@@ -77,12 +109,4 @@ const getWrappedLiveApiObject = <T extends LiveApiObjectWrapper>(
   liveApiObjectCacheById[rawApiObject.id] = wrapper;
 
   return wrapper;
-};
-
-export const getLiveApiDevice = (idOrPath: number | string): LiveApiDevice => {
-  return getWrappedLiveApiObject(idOrPath, LiveApiDevice);
-};
-
-export const getLiveApiParameter = (idOrPath: number | string): LiveApiParameter => {
-  return getWrappedLiveApiObject(idOrPath, LiveApiParameter);
 };

@@ -14,13 +14,13 @@ export const LOG_CONFIG = {
   LiveFader: {
     enabled: true,
     debug: true,
-    verbose: true,
+    verbose: false,
   } as LogConfig,
 
   ParameterScene: {
     enabled: true,
     debug: true,
-    verbose: true,
+    verbose: false,
   } as LogConfig,
 
   LiveApiObjectWrapper: {

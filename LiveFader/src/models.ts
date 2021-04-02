@@ -1,4 +1,5 @@
 import { Log, log } from "./lib_Log";
+import { LiveApiParameter } from "./lib_maxForLiveUtils";
 
 export class LockedParameter {
   constructor(public parameterId: number, public lockedValue: number) {}
@@ -12,7 +13,7 @@ export class ParameterScene {
 
   constructor(public name: string) {}
 
-  isParameterLocked = (parameter: LiveApiObject) => {
+  isParameterLocked = (parameter: LiveApiParameter) => {
     return this.isParameterLockedById(parameter.id);
   };
 
@@ -20,7 +21,7 @@ export class ParameterScene {
     return this.lockedParametersById[parameterId] !== undefined;
   };
 
-  addLockedParameter = (parameter: LiveApiObject, value: number) => {
+  addLockedParameter = (parameter: LiveApiParameter, value: number) => {
     this.log.debug(
       `Adding locked parameter ${parameter.id} with target ${value} to scene ${this.name}`
     );
@@ -37,7 +38,7 @@ export class ParameterScene {
 }
 
 export class TrackedParameter {
-  constructor(public apiObject: LiveApiObject, public lastUserValue: number) {}
+  constructor(public parameter: LiveApiParameter, public lastUserValue: number) {}
 }
 
 /*export class TrackedParameters {

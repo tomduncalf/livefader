@@ -1,6 +1,6 @@
 import { log, Log } from "./lib_Log";
 import { lerp } from "./lib_math";
-import { getLiveApiObjectById } from "./lib_maxForLiveUtils";
+import { getLiveApiObjectById, LiveApiDevice, LiveApiParameter } from "./lib_maxForLiveUtils";
 import { LiveParameterListener } from "./LiveParameterListener";
 import { LockedParameter, ParameterScene, TrackedParameter } from "./models";
 
@@ -117,7 +117,7 @@ export class LiveFader {
 
       const newValue = lerp(values[0], values[1], this.currentFaderValue);
 
-      activeLockedParameter.trackedParameter.apiObject.set("value", newValue);
+      activeLockedParameter.trackedParameter.parameter.setValue(newValue);
     });
 
     this.setState(previousState);
@@ -143,11 +143,7 @@ export class LiveFader {
     }
   };
 
-  handleActiveParameterValueChanged = (
-    value: number,
-    parameter: LiveApiObject,
-    device: LiveApiObject
-  ) => {
+  handleActiveParameterValueChanged = (value: number, parameter: LiveApiParameter) => {
     const parameterId = parameter.id;
 
     if (this.state === State.Normal) {
@@ -155,9 +151,7 @@ export class LiveFader {
         this.trackedParametersById[parameterId].lastUserValue = value;
 
         this.log.verbose(
-          `Updating last tracked value of parameter ${parameterId} (${parameter.get(
-            "name"
-          )}) to ${value}`
+          `Updating last tracked value of parameter ${parameterId} (${parameter.name}) to ${value}`
         );
       }
     } else if (this.state === State.Mapping) {
@@ -169,9 +163,9 @@ export class LiveFader {
         this.currentMappingScene!.lockedParametersById[parameterId].lockedValue = value;
 
         this.log.verbose(
-          `Updating locked parameter ${parameter.get(
-            "name"
-          )} ${parameterId} target to ${value} in scene ${this.currentMappingScene!.name}`
+          `Updating locked parameter ${parameter.name} ${parameterId} target to ${value} in scene ${
+            this.currentMappingScene!.name
+          }`
         );
       }
     } else if (this.state === State.Crossfading) {
@@ -179,7 +173,7 @@ export class LiveFader {
     }
   };
 
-  maybeAddTrackedParameter = (parameter: LiveApiObject, value: number) => {
+  maybeAddTrackedParameter = (parameter: LiveApiParameter, value: number) => {
     if (this.trackedParametersById[parameter.id] === undefined) {
       this.trackedParametersById[parameter.id] = new TrackedParameter(parameter, value);
 
@@ -193,10 +187,10 @@ export class LiveFader {
     this.scenes.forEach((scene) => {
       scene.forEachLockedParameter((lockedParameter) => {
         if (!this.trackedParametersById[lockedParameter.parameterId]) {
-          const apiObject = getLiveApiObjectById(lockedParameter.parameterId);
+          const parameter = LiveApiParameter.get(lockedParameter.parameterId);
           this.trackedParametersById[lockedParameter.parameterId] = new TrackedParameter(
-            apiObject,
-            apiObject.get("value")
+            parameter,
+            parameter.value
           );
         }
       });

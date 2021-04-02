@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "tsc": "tsc",
     "tsc-watch": "tsc --watch",
     "touch": "touch dist/main.js",
     "dev": "concurrently 'npm-watch' 'yarn tsc-watch'"

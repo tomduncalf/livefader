@@ -75,6 +75,10 @@ export class LiveFader {
     this.faderUpdateTask.repeat();
   }
 
+  cleanup = () => {
+    this.liveParameterListener.removeListeners();
+  };
+
   handleMessage = (inlet: Inlets, value: number) => {
     if (inlet === Inlets.LeftButton || inlet === Inlets.RightButton) {
       this.handleFaderButton(inlet, value);

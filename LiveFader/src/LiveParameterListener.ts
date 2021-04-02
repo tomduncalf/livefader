@@ -34,6 +34,17 @@ export class LiveParameterListener {
     this.setupTrackListener();
   }
 
+  // This should be called before reloading JS, otherwise listeners from previous loads persist.
+  // See https://cycling74.com/forums/how-to-destroy-a-liveapi-object-instantiated-in-js
+  removeListeners = () => {
+    this.log.debug("Removing listeners");
+
+    this.trackListener.property = "";
+    this.deviceListener.property = "";
+    this.parameterListener.property = "";
+    this.parameterValueListener.property = "";
+  };
+
   setupParameterValueListener = () => {
     this.parameterValueListener = new LiveAPI((v: any[]) => {
       if (!this.activeParameter!.device!.isLiveFaderDevice) {
@@ -79,7 +90,7 @@ export class LiveParameterListener {
         this.activeDevicePath = this.activeDevice.path;
         this.resetParameterListener();
 
-        this.log.debug("deviceListener " + this.activeDevice.name);
+        this.log.verbose("deviceListener " + this.activeDevice.name);
       }
     });
   };
@@ -91,7 +102,7 @@ export class LiveParameterListener {
 
   setupTrackListener = () => {
     this.trackListener = new LiveAPI((v: any[]) => {
-      this.log.debug("trackListener " + v);
+      this.log.verbose("trackListener " + v);
 
       if (v[0] === "selected_track") {
         var track = LiveApiObjectWrapper.get(v[2]);

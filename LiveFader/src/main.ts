@@ -1,3 +1,5 @@
+autowatch = 0;
+
 import { log } from "./lib_Log";
 import { LiveFader } from "./LiveFader";
 
@@ -14,6 +16,10 @@ function bang() {
   instance = new LiveFader();
   // @ts-ignore
   instance.patcher = this.patcher;
+}
+
+function cleanup() {
+  instance.cleanup();
 }
 
 // Need to hook up to inlets/outlets at this main entry point

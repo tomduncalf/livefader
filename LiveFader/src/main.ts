@@ -9,8 +9,8 @@ log("Script reloaded at: " + new Date());
 inlets = Object.keys(Inlets).length;
 outlets = Object.keys(Outlets).length;
 
-setinletassist(-1, (i: number) => assist(Inlets[Object.keys(Inlets)[i]].description));
-setoutletassist(-1, (i: number) => assist(Outlets[Object.keys(Outlets)[i]].description));
+setinletassist(-1, (i: number) => assist((Inlets as any)[Object.keys(Inlets)[i]].description));
+setoutletassist(-1, (i: number) => assist((Outlets as any)[Object.keys(Outlets)[i]].description));
 
 let instance: LiveFader;
 

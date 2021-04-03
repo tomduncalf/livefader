@@ -96,12 +96,14 @@ export class LiveFader {
 
     // Populate 8 scenes to start, named A to H
     this.scenes = [...new Array(8)].map(
-      (_, i) => new ParameterScene(i, String.fromCharCode(CHAR_CODE_A + i))
+      (_, i) => new ParameterScene(String.fromCharCode(CHAR_CODE_A + i))
     );
 
     this.activeScenes = [this.scenes[0], this.scenes[1]];
     this.activeSceneIndices = [0, 1];
 
+    this.updateActiveLockedParameters();
+    this.updateFader(true);
     this.updateUI();
   };
 
@@ -122,8 +124,8 @@ export class LiveFader {
     this.state = state;
   };
 
-  updateFader = () => {
-    if (this.currentFaderValue === this.lastFaderValue) return;
+  updateFader = (force = false) => {
+    if (!force && this.currentFaderValue === this.lastFaderValue) return;
 
     this.log.verbose(`Update fader to ${this.currentFaderValue}`);
 
@@ -286,7 +288,8 @@ export class LiveFader {
     outlet(Outlets.RightText.index, "set", this.activeScenes[1].getDescription());
 
     this.setAllSceneButtonsOff();
-    if (this.currentMappingScene) this.setSceneButton(this.currentMappingScene.index, true);
+    if (this.activeSceneButtonIndex !== undefined)
+      this.setSceneButton(this.activeSceneIndices[this.activeSceneButtonIndex], true);
   };
 
   openFullScreen = () => {
@@ -303,10 +306,19 @@ export class LiveFader {
     }
 
     if (state) {
-      this.activeScenes[this.activeSceneButtonIndex] = this.scenes[sceneIndex];
+      this.setActiveScene(this.activeSceneButtonIndex, sceneIndex);
       this.currentMappingScene = this.scenes[sceneIndex];
     }
 
+    this.updateUI();
+  };
+
+  setActiveScene = (buttonIndex: number, sceneIndex: number) => {
+    this.activeScenes[buttonIndex] = this.scenes[sceneIndex];
+    this.activeSceneIndices[buttonIndex] = sceneIndex;
+
+    this.updateActiveLockedParameters();
+    this.updateFader(true);
     this.updateUI();
   };
 
@@ -321,7 +333,6 @@ export class LiveFader {
   getSavedState = () => {
     const state: SavedState = {
       scenes: this.scenes.map((scene) => ({
-        index: scene.index,
         name: scene.name,
         description: scene.description,
         lockedParameters: Object.keys(scene.lockedParametersById).map((k) => {

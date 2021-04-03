@@ -54,7 +54,7 @@ export class LiveParameterListener {
           }`
         );
 
-        this.onActiveParameterValueChanged(this.activeParameter?.value, this.activeParameter!);
+        this.onActiveParameterValueChanged(this.activeParameter!.value, this.activeParameter!);
       }
     });
   };

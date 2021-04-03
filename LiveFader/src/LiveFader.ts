@@ -187,6 +187,8 @@ export class LiveFader {
 
         // this.log.debug(this.scenes);
       }
+
+      notifyclients();
     } else if (this.state === State.Crossfading) {
       // Do nothing
     }
@@ -256,7 +258,7 @@ export class LiveFader {
     this.patcher.front();
   };
 
-  dumpSavedState = () => {
+  getSavedState = () => {
     const state: SavedState = {
       scenes: this.scenes.map((s) => ({
         name: s.name,
@@ -268,10 +270,15 @@ export class LiveFader {
       activeSceneIndices: this.activeSceneIndices,
     };
 
-    this.log.debug(state);
+    return state;
+  };
+
+  dumpSavedState = () => {
+    this.log.debug(this.getSavedState());
   };
 
   loadSavedState = (savedState: string) => {
+    this.log.debug(`loadSavedState: ${savedState}`);
     const parsed: SavedState = JSON.parse(savedState);
 
     this.scenes = parsed.scenes.map((s) => ParameterScene.hydrateFromSavedState(s));

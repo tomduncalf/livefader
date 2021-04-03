@@ -6,14 +6,19 @@ export interface SavedState {
   activeSceneIndices: [number, number];
 }
 
+export interface SavedLockedParameter {
+  path: string;
+  lockedValue: number;
+}
+
 export interface SavedScene {
   name: string;
   description: string;
-  lockedParameters: LockedParameter[];
+  lockedParameters: SavedLockedParameter[];
 }
 
 export class LockedParameter {
-  constructor(public parameterId: number, public path: string, public lockedValue: number) {}
+  constructor(public parameter: LiveApiParameter, public lockedValue: number) {}
 }
 
 export class ParameterScene {
@@ -30,11 +35,7 @@ export class ParameterScene {
 
     scene.lockedParametersById = savedState.lockedParameters.reduce((obj, lockedParameter) => {
       const liveParameter = LiveApiParameter.get(lockedParameter.path);
-      const parameter = new LockedParameter(
-        liveParameter.id,
-        lockedParameter.path,
-        lockedParameter.lockedValue
-      );
+      const parameter = new LockedParameter(liveParameter, lockedParameter.lockedValue);
 
       obj[Number(liveParameter.id)] = parameter;
 
@@ -57,11 +58,7 @@ export class ParameterScene {
       `Adding locked parameter ${parameter.id} with target ${value} to scene ${this.name}`
     );
 
-    this.lockedParametersById[parameter.id] = new LockedParameter(
-      parameter.id,
-      parameter.path,
-      value
-    );
+    this.lockedParametersById[parameter.id] = new LockedParameter(parameter, value);
   };
 
   forEachLockedParameter = (fn: (lockedParameter: LockedParameter, index: number) => void) => {

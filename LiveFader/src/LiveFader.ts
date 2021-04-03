@@ -2,7 +2,13 @@ import { log, Log } from "./lib_Log";
 import { lerp } from "./lib_math";
 import { getLiveApiObjectById, LiveApiDevice, LiveApiParameter } from "./lib_maxForLiveUtils";
 import { LiveParameterListener } from "./LiveParameterListener";
-import { LockedParameter, ParameterScene, SavedState, TrackedParameter } from "./models";
+import {
+  LockedParameter,
+  ParameterScene,
+  SavedLockedParameter,
+  SavedState,
+  TrackedParameter,
+} from "./models";
 
 const CHAR_CODE_A = 65;
 
@@ -13,8 +19,9 @@ enum Inlets {
 }
 
 export enum Outlets {
-  Messages,
   Debug,
+  LeftText,
+  RightText,
 }
 
 enum State {
@@ -35,9 +42,9 @@ export class LiveFader {
 
   state: State = State.Normal;
 
-  scenes: ParameterScene[];
-  activeScenes: ParameterScene[];
-  activeSceneIndices: [number, number];
+  scenes!: ParameterScene[];
+  activeScenes!: ParameterScene[];
+  activeSceneIndices!: [number, number];
 
   // Keep a reference to the parameters which are locked by either of the current scenes
   // so we don't have to calculate this every time the crossfader changes
@@ -60,13 +67,7 @@ export class LiveFader {
   constructor() {
     log("LiveFader started");
 
-    // Populate 8 scenes to start, named A to H
-    this.scenes = [...new Array(8)].map(
-      (_, i) => new ParameterScene(String.fromCharCode(CHAR_CODE_A + i))
-    );
-
-    this.activeScenes = [this.scenes[0], this.scenes[1]];
-    this.activeSceneIndices = [0, 1];
+    this.reset();
 
     this.liveParameterListener.onActiveParameterValueChanged = this.handleActiveParameterValueChanged;
 
@@ -78,6 +79,20 @@ export class LiveFader {
 
   cleanup = () => {
     this.liveParameterListener.removeListeners();
+  };
+
+  reset = () => {
+    this.log.debug("reset");
+
+    // Populate 8 scenes to start, named A to H
+    this.scenes = [...new Array(8)].map(
+      (_, i) => new ParameterScene(String.fromCharCode(CHAR_CODE_A + i))
+    );
+
+    this.activeScenes = [this.scenes[0], this.scenes[1]];
+    this.activeSceneIndices = [0, 1];
+
+    this.updateUI();
   };
 
   handleMessage = (inlet: Inlets, value: number) => {
@@ -140,13 +155,8 @@ export class LiveFader {
 
         // TODO why not store parameter object in lockedParameters?
         this.currentMappingScene?.forEachLockedParameter((lockedParameter) => {
-          const parameter = LiveApiParameter.get(lockedParameter.parameterId);
-          parameter.setValue(this.trackedParametersById[parameter.id].lastUserValue);
-
-          this.log.debug(
-            "set",
-            lockedParameter.parameterId,
-            this.trackedParametersById[parameter.id].lastUserValue
+          lockedParameter.parameter.setValue(
+            this.trackedParametersById[lockedParameter.parameter.id].lastUserValue
           );
         });
       }
@@ -188,6 +198,7 @@ export class LiveFader {
         // this.log.debug(this.scenes);
       }
 
+      this.updateUI();
       notifyclients();
     } else if (this.state === State.Crossfading) {
       // Do nothing
@@ -207,11 +218,10 @@ export class LiveFader {
 
     this.scenes.forEach((scene) => {
       scene.forEachLockedParameter((lockedParameter) => {
-        if (!this.trackedParametersById[lockedParameter.parameterId]) {
-          const parameter = LiveApiParameter.get(lockedParameter.parameterId);
-          this.trackedParametersById[lockedParameter.parameterId] = new TrackedParameter(
-            parameter,
-            parameter.value
+        if (!this.trackedParametersById[lockedParameter.parameter.id]) {
+          this.trackedParametersById[lockedParameter.parameter.id] = new TrackedParameter(
+            lockedParameter.parameter,
+            lockedParameter.parameter.value
           );
         }
       });
@@ -223,21 +233,21 @@ export class LiveFader {
     const activeLockedParametersObj: Record<number, ActiveLockedParameter> = {};
 
     this.activeScenes[0].forEachLockedParameter((lockedParameter) => {
-      activeLockedParametersObj[lockedParameter.parameterId] = {
-        trackedParameter: this.trackedParametersById[lockedParameter.parameterId],
+      activeLockedParametersObj[lockedParameter.parameter.id] = {
+        trackedParameter: this.trackedParametersById[lockedParameter.parameter.id],
         lockedParameters: [lockedParameter, undefined],
       };
     });
 
     this.activeScenes[1].forEachLockedParameter((lockedParameter) => {
       log(lockedParameter);
-      if (activeLockedParametersObj[lockedParameter.parameterId]) {
+      if (activeLockedParametersObj[lockedParameter.parameter.id]) {
         activeLockedParametersObj[
-          lockedParameter.parameterId
+          lockedParameter.parameter.id
         ].lockedParameters[1] = lockedParameter;
       } else {
-        activeLockedParametersObj[lockedParameter.parameterId] = {
-          trackedParameter: this.trackedParametersById[lockedParameter.parameterId],
+        activeLockedParametersObj[lockedParameter.parameter.id] = {
+          trackedParameter: this.trackedParametersById[lockedParameter.parameter.id],
           lockedParameters: [undefined, lockedParameter],
         };
       }
@@ -251,6 +261,16 @@ export class LiveFader {
     );
   };
 
+  updateUI = () => {
+    let leftText = "";
+    this.activeScenes[0].forEachLockedParameter((param) => {
+      // TODO need a ref to parameter
+      leftText += `${param.parameter.name} ${param.lockedValue}\n`;
+    });
+    log(leftText);
+    outlet(Outlets.LeftText, "set", leftText);
+  };
+
   openFullScreen = () => {
     this.patcher.message("script", "send", "window", "flags", "nomenu");
     this.patcher.message("script", "send", "window", "flags", "float");
@@ -260,12 +280,17 @@ export class LiveFader {
 
   getSavedState = () => {
     const state: SavedState = {
-      scenes: this.scenes.map((s) => ({
-        name: s.name,
-        description: s.description,
-        lockedParameters: Object.keys(s.lockedParametersById).map(
-          (k) => s.lockedParametersById[k as any]
-        ),
+      scenes: this.scenes.map((scene) => ({
+        name: scene.name,
+        description: scene.description,
+        lockedParameters: Object.keys(scene.lockedParametersById).map((k) => {
+          const lockedParameter = scene.lockedParametersById[k as any];
+
+          return {
+            path: lockedParameter.parameter.path,
+            lockedValue: lockedParameter.lockedValue,
+          } as SavedLockedParameter;
+        }),
       })),
       activeSceneIndices: this.activeSceneIndices,
     };
@@ -289,5 +314,6 @@ export class LiveFader {
 
     this.initialiseTrackedParameters();
     this.updateActiveLockedParameters();
+    this.updateUI();
   };
 }

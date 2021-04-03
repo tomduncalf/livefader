@@ -7,7 +7,7 @@ log("__________________");
 log("Script reloaded at: " + new Date());
 
 inlets = 5;
-outlets = 2;
+outlets = 3;
 
 let instance: LiveFader;
 
@@ -20,6 +20,10 @@ function bang() {
   instance.patcher = this.patcher;
 
   if (savedState) instance.loadSavedState(savedState);
+}
+
+function reset() {
+  instance.reset();
 }
 
 function cleanup() {

@@ -12,6 +12,7 @@ export interface SavedLockedParameter {
 }
 
 export interface SavedScene {
+  index: number;
   name: string;
   description: string;
   lockedParameters: SavedLockedParameter[];
@@ -27,11 +28,11 @@ export class ParameterScene {
   description: string = "";
   lockedParametersById: Record<number, LockedParameter> = {};
 
-  constructor(public name: string) {}
+  constructor(public index: number, public name: string) {}
 
   // We need to rediscover each locked parameter's id on loading state as it could have changed
   static hydrateFromSavedState = (savedState: SavedScene) => {
-    const scene = new ParameterScene(savedState.name);
+    const scene = new ParameterScene(savedState.index, savedState.name);
 
     scene.lockedParametersById = savedState.lockedParameters.reduce((obj, lockedParameter) => {
       const liveParameter = LiveApiParameter.get(lockedParameter.path);

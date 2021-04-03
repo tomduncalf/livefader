@@ -16,20 +16,21 @@ interface InletOutlet {
   index: number;
   description: string;
 }
-type InletsOutlets = Record<string, InletOutlet>;
 
-export const Inlets: InletsOutlets = {
+export const Inlets = {
   LeftButton: { index: 0, description: "Left Button" },
   RightButton: { index: 1, description: "Right Button" },
   Fader: { index: 2, description: "Fader" },
+  SceneButtons: { index: 3, description: "Scene Buttons (via funnel)" },
 };
 
-export const Outlets: InletsOutlets = {
+export const Outlets = {
   Debug: { index: 0, description: "Debug" },
   LeftText: { index: 1, description: "Left Text" },
   RightText: { index: 2, description: "Right Text" },
   LeftButton: { index: 3, description: "Left Button" },
   RightButton: { index: 4, description: "Right Button" },
+  SceneButtons: { index: 5, description: "Scene Buttons (via route)" },
 };
 
 enum State {
@@ -53,6 +54,7 @@ export class LiveFader {
   scenes!: ParameterScene[];
   activeScenes!: ParameterScene[];
   activeSceneIndices!: [number, number];
+  activeSceneButtonIndex?: number;
 
   // Keep a reference to the parameters which are locked by either of the current scenes
   // so we don't have to calculate this every time the crossfader changes
@@ -94,7 +96,7 @@ export class LiveFader {
 
     // Populate 8 scenes to start, named A to H
     this.scenes = [...new Array(8)].map(
-      (_, i) => new ParameterScene(String.fromCharCode(CHAR_CODE_A + i))
+      (_, i) => new ParameterScene(i, String.fromCharCode(CHAR_CODE_A + i))
     );
 
     this.activeScenes = [this.scenes[0], this.scenes[1]];
@@ -157,6 +159,7 @@ export class LiveFader {
 
       const wasMapping = this.state === State.Mapping;
       this.setState(State.Normal);
+      this.activeSceneButtonIndex = undefined;
 
       if (wasMapping) {
         this.log.debug(this.currentMappingScene);
@@ -175,7 +178,9 @@ export class LiveFader {
       );
 
       this.setState(State.Mapping);
-      this.currentMappingScene = this.activeScenes[inlet === Inlets.LeftButton.index ? 0 : 1];
+      const buttonIndex = inlet === Inlets.LeftButton.index ? 0 : 1;
+      this.currentMappingScene = this.activeScenes[buttonIndex];
+      this.activeSceneButtonIndex = buttonIndex;
 
       outlet(
         inlet === Inlets.LeftButton.index ? Outlets.RightButton.index : Outlets.LeftButton.index,
@@ -183,6 +188,8 @@ export class LiveFader {
         0
       );
     }
+
+    this.updateUI();
   };
 
   handleActiveParameterValueChanged = (value: number, parameter: LiveApiParameter) => {
@@ -277,6 +284,9 @@ export class LiveFader {
   updateUI = () => {
     outlet(Outlets.LeftText.index, "set", this.activeScenes[0].getDescription());
     outlet(Outlets.RightText.index, "set", this.activeScenes[1].getDescription());
+
+    this.setAllSceneButtonsOff();
+    if (this.currentMappingScene) this.setSceneButton(this.currentMappingScene.index, true);
   };
 
   openFullScreen = () => {
@@ -286,9 +296,32 @@ export class LiveFader {
     this.patcher.front();
   };
 
+  handleSceneButton = (sceneIndex: number, state: boolean) => {
+    if (this.activeSceneButtonIndex === undefined) {
+      this.setAllSceneButtonsOff();
+      return;
+    }
+
+    if (state) {
+      this.activeScenes[this.activeSceneButtonIndex] = this.scenes[sceneIndex];
+      this.currentMappingScene = this.scenes[sceneIndex];
+    }
+
+    this.updateUI();
+  };
+
+  setSceneButton = (sceneIndex: number, state: boolean) => {
+    outlet(Outlets.SceneButtons.index, sceneIndex, "set", state ? 1 : 0);
+  };
+
+  setAllSceneButtonsOff = () => {
+    for (let i = 0; i < 8; i++) this.setSceneButton(i, false);
+  };
+
   getSavedState = () => {
     const state: SavedState = {
       scenes: this.scenes.map((scene) => ({
+        index: scene.index,
         name: scene.name,
         description: scene.description,
         lockedParameters: Object.keys(scene.lockedParametersById).map((k) => {

@@ -50,6 +50,10 @@ function msg_float(value: number) {
   if (instance) instance.handleMessage(inlet, value);
 }
 
+function scene_button(buttonIndex: number, state: number) {
+  instance.handleSceneButton(buttonIndex, state === 1);
+}
+
 // Handle loading and saving state - this is stored in the pattr object
 // Note that you need to call notifyclients() whenever the state is updated
 function getvalueof() {

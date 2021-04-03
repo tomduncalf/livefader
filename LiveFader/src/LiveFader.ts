@@ -262,13 +262,8 @@ export class LiveFader {
   };
 
   updateUI = () => {
-    let leftText = "";
-    this.activeScenes[0].forEachLockedParameter((param) => {
-      // TODO need a ref to parameter
-      leftText += `${param.parameter.name} ${param.lockedValue}\n`;
-    });
-    log(leftText);
-    outlet(Outlets.LeftText, "set", leftText);
+    outlet(Outlets.LeftText, "set", this.activeScenes[0].getDescription());
+    outlet(Outlets.RightText, "set", this.activeScenes[1].getDescription());
   };
 
   openFullScreen = () => {

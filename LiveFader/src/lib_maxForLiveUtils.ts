@@ -30,12 +30,27 @@ export class LiveApiObjectWrapper {
 }
 
 export class LiveApiDevice extends LiveApiObjectWrapper {
+  private _trackIndex?: number;
+
   static get(idOrPath: number | string) {
     return getWrappedLiveApiObject(idOrPath, LiveApiDevice);
   }
 
   get isLiveFaderDevice() {
     return this.name === "LiveFader";
+  }
+
+  get trackIndex() {
+    if (this._trackIndex) return this._trackIndex;
+
+    const matches = this.path.match(/live_set tracks (\d+) devices \d+/);
+    if (!matches || !matches[1]) {
+      log.error(`get trackIndex: Path "${this.path}" did not match regex`);
+      return undefined;
+    }
+
+    this._trackIndex = Number(matches[1]);
+    return this._trackIndex;
   }
 }
 
@@ -47,7 +62,7 @@ export class LiveApiParameter extends LiveApiObjectWrapper {
   }
 
   get value() {
-    return this.apiObject.get("value");
+    return Number(this.apiObject.get("value"));
   }
 
   setValue = (value: number) => {
@@ -61,7 +76,7 @@ export class LiveApiParameter extends LiveApiObjectWrapper {
 
     const matches = this.path.match(/(live_set tracks \d+ devices \d+)/);
     if (!matches || !matches[1]) {
-      log.error(`getDevice: Path "${this.path}" did not match regex`);
+      log.error(`get device: Path "${this.path}" did not match regex`);
       return undefined;
     }
 

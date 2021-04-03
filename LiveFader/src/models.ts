@@ -67,6 +67,18 @@ export class ParameterScene {
       fn(this.lockedParametersById[key], index);
     });
   };
+
+  getDescription = () => {
+    let description = "";
+
+    this.forEachLockedParameter((param) => {
+      description += `${param.parameter.device?.trackIndex! + 1}/${param.parameter.device?.name}/${
+        param.parameter.name
+      }: ${param.lockedValue.toFixed(2)}\n`;
+    });
+
+    return description;
+  };
 }
 
 export class TrackedParameter {

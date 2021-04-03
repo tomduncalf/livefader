@@ -1,13 +1,16 @@
 autowatch = 0;
 
 import { log } from "./lib_Log";
-import { LiveFader } from "./LiveFader";
+import { Inlets, LiveFader, Outlets } from "./LiveFader";
 
 log("__________________");
 log("Script reloaded at: " + new Date());
 
-inlets = 5;
-outlets = 3;
+inlets = Object.keys(Inlets).length;
+outlets = Object.keys(Outlets).length;
+
+setinletassist(-1, (i: number) => assist(Inlets[Object.keys(Inlets)[i]].description));
+setoutletassist(-1, (i: number) => assist(Outlets[Object.keys(Outlets)[i]].description));
 
 let instance: LiveFader;
 

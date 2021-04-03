@@ -1,6 +1,6 @@
 import { log, Log } from "./lib_Log";
 import { lerp } from "./lib_math";
-import { getLiveApiObjectById, LiveApiDevice, LiveApiParameter } from "./lib_maxForLiveUtils";
+import { LiveApiParameter } from "./lib_maxForLiveUtils";
 import { LiveParameterListener } from "./LiveParameterListener";
 import {
   LockedParameter,
@@ -12,17 +12,25 @@ import {
 
 const CHAR_CODE_A = 65;
 
-enum Inlets {
-  LeftButton,
-  RightButton,
-  Fader,
+interface InletOutlet {
+  index: number;
+  description: string;
 }
+type InletsOutlets = Record<string, InletOutlet>;
 
-export enum Outlets {
-  Debug,
-  LeftText,
-  RightText,
-}
+export const Inlets: InletsOutlets = {
+  LeftButton: { index: 0, description: "Left Button" },
+  RightButton: { index: 1, description: "Right Button" },
+  Fader: { index: 2, description: "Fader" },
+};
+
+export const Outlets: InletsOutlets = {
+  Debug: { index: 0, description: "Debug" },
+  LeftText: { index: 1, description: "Left Text" },
+  RightText: { index: 2, description: "Right Text" },
+  LeftButton: { index: 3, description: "Left Button" },
+  RightButton: { index: 4, description: "Right Button" },
+};
 
 enum State {
   Normal,
@@ -95,10 +103,10 @@ export class LiveFader {
     this.updateUI();
   };
 
-  handleMessage = (inlet: Inlets, value: number) => {
-    if (inlet === Inlets.LeftButton || inlet === Inlets.RightButton) {
+  handleMessage = (inlet: number, value: number) => {
+    if (inlet === Inlets.LeftButton.index || inlet === Inlets.RightButton.index) {
       this.handleFaderButton(inlet, value);
-    } else if (inlet === Inlets.Fader) {
+    } else if (inlet === Inlets.Fader.index) {
       this.handleFader(value);
     }
   };
@@ -143,7 +151,7 @@ export class LiveFader {
     this.setState(previousState);
   };
 
-  handleFaderButton = (inlet: Inlets, value: number) => {
+  handleFaderButton = (inlet: number, value: number) => {
     if (value === 0) {
       this.log.debug(`Enter normal mode`);
 
@@ -153,7 +161,6 @@ export class LiveFader {
       if (wasMapping) {
         this.log.debug(this.currentMappingScene);
 
-        // TODO why not store parameter object in lockedParameters?
         this.currentMappingScene?.forEachLockedParameter((lockedParameter) => {
           lockedParameter.parameter.setValue(
             this.trackedParametersById[lockedParameter.parameter.id].lastUserValue
@@ -164,11 +171,17 @@ export class LiveFader {
       this.currentMappingScene = undefined;
     } else {
       this.log.debug(
-        `Enter mapping mode for ${inlet === Inlets.LeftButton ? "left" : "right"} scene`
+        `Enter mapping mode for ${inlet === Inlets.LeftButton.index ? "left" : "right"} scene`
       );
 
       this.setState(State.Mapping);
-      this.currentMappingScene = this.activeScenes[inlet === Inlets.LeftButton ? 0 : 1];
+      this.currentMappingScene = this.activeScenes[inlet === Inlets.LeftButton.index ? 0 : 1];
+
+      outlet(
+        inlet === Inlets.LeftButton.index ? Outlets.RightButton.index : Outlets.LeftButton.index,
+        "set",
+        0
+      );
     }
   };
 
@@ -262,8 +275,8 @@ export class LiveFader {
   };
 
   updateUI = () => {
-    outlet(Outlets.LeftText, "set", this.activeScenes[0].getDescription());
-    outlet(Outlets.RightText, "set", this.activeScenes[1].getDescription());
+    outlet(Outlets.LeftText.index, "set", this.activeScenes[0].getDescription());
+    outlet(Outlets.RightText.index, "set", this.activeScenes[1].getDescription());
   };
 
   openFullScreen = () => {

@@ -65,7 +65,7 @@ var LiveApiDevice = /** @class */ (function (_super) {
     };
     Object.defineProperty(LiveApiDevice.prototype, "isLiveFaderDevice", {
         get: function () {
-            return this.name === "LiveFader";
+            return this.name.indexOf("LiveFader") > -1;
         },
         enumerable: false,
         configurable: true

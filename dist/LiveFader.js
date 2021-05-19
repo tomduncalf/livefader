@@ -179,7 +179,8 @@ var LiveFader = /** @class */ (function () {
             _this.activeScenes[1].forEachLockedParameter(function (lockedParameter) {
                 lib_Log_1.log(lockedParameter);
                 if (activeLockedParametersObj[lockedParameter.parameter.id]) {
-                    activeLockedParametersObj[lockedParameter.parameter.id].lockedParameters[1] = lockedParameter;
+                    activeLockedParametersObj[lockedParameter.parameter.id].lockedParameters[1] =
+                        lockedParameter;
                 }
                 else {
                     activeLockedParametersObj[lockedParameter.parameter.id] = {
@@ -199,7 +200,7 @@ var LiveFader = /** @class */ (function () {
             if (_this.activeSceneButtonIndex !== undefined)
                 _this.setSceneButton(_this.activeSceneIndices[_this.activeSceneButtonIndex], true);
         };
-        this.openFullScreen = function () {
+        this.openPopout = function () {
             _this.patcher.message("script", "send", "window", "flags", "nomenu");
             _this.patcher.message("script", "send", "window", "flags", "float");
             _this.patcher.message("script", "send", "window", "exec");
@@ -264,7 +265,8 @@ var LiveFader = /** @class */ (function () {
         };
         lib_Log_1.log("LiveFader started");
         this.reset();
-        this.liveParameterListener.onActiveParameterValueChanged = this.handleActiveParameterValueChanged;
+        this.liveParameterListener.onActiveParameterValueChanged =
+            this.handleActiveParameterValueChanged;
         // Handle crossfader input at 30fps rather than continuosly to help with performance
         this.faderUpdateTask = new Task(this.updateFader, this);
         this.faderUpdateTask.interval = 1000 / 30;

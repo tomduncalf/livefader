@@ -8,6 +8,7 @@ import {
 
 let outletLog: string[] = [];
 
+// Based on https://cycling74.com/forums/tutorial-using-the-javascript-live-api-in-max-for-live/replies/1#reply-5fd76050b2a7ee5f9fbcfb78
 export function log(x: any, y?: any, z?: any) {
   for (var i = 0, len = arguments.length; i < len; i++) {
     var message = arguments[i];

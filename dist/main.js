@@ -24,8 +24,8 @@ function reset() {
 function cleanup() {
     instance.cleanup();
 }
-function fullscreen() {
-    instance.openFullScreen();
+function popout() {
+    instance.openPopout();
 }
 function dump() {
     instance.dumpSavedState();

@@ -79,7 +79,8 @@ export class LiveFader {
 
     this.reset();
 
-    this.liveParameterListener.onActiveParameterValueChanged = this.handleActiveParameterValueChanged;
+    this.liveParameterListener.onActiveParameterValueChanged =
+      this.handleActiveParameterValueChanged;
 
     // Handle crossfader input at 30fps rather than continuosly to help with performance
     this.faderUpdateTask = new Task(this.updateFader, this);
@@ -262,11 +263,9 @@ export class LiveFader {
     });
 
     this.activeScenes[1].forEachLockedParameter((lockedParameter) => {
-      log(lockedParameter);
       if (activeLockedParametersObj[lockedParameter.parameter.id]) {
-        activeLockedParametersObj[
-          lockedParameter.parameter.id
-        ].lockedParameters[1] = lockedParameter;
+        activeLockedParametersObj[lockedParameter.parameter.id].lockedParameters[1] =
+          lockedParameter;
       } else {
         activeLockedParametersObj[lockedParameter.parameter.id] = {
           trackedParameter: this.trackedParametersById[lockedParameter.parameter.id],
@@ -292,7 +291,7 @@ export class LiveFader {
       this.setSceneButton(this.activeSceneIndices[this.activeSceneButtonIndex], true);
   };
 
-  openFullScreen = () => {
+  openPopout = () => {
     this.patcher.message("script", "send", "window", "flags", "nomenu");
     this.patcher.message("script", "send", "window", "flags", "float");
     this.patcher.message("script", "send", "window", "exec");

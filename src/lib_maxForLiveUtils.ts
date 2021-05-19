@@ -37,7 +37,7 @@ export class LiveApiDevice extends LiveApiObjectWrapper {
   }
 
   get isLiveFaderDevice() {
-    return this.name === "LiveFader";
+    return this.name.indexOf("LiveFader") > -1;
   }
 
   get trackIndex() {

@@ -176,13 +176,7 @@ export class LiveFader {
       this.activeSceneButtonIndex = undefined;
 
       if (wasMapping) {
-        this.log.debug(this.currentMappingScene);
-
-        this.currentMappingScene?.forEachLockedParameter((lockedParameter) => {
-          lockedParameter.parameter.setValue(
-            this.trackedParametersById[lockedParameter.parameter.id].lastUserValue
-          );
-        });
+        this.updateFader(true);
       }
 
       this.currentMappingScene = undefined;
@@ -264,6 +258,8 @@ export class LiveFader {
   };
 
   updateActiveLockedParameters = () => {
+    const previousLockedParmeters = [...this.activeLockedParameters];
+
     // Use a dictionary for easier construction of the array
     const activeLockedParametersObj: Record<number, ActiveLockedParameter> = {};
 
@@ -292,6 +288,18 @@ export class LiveFader {
     this.activeLockedParameters = Object.keys(activeLockedParametersObj).map(
       (k) => activeLockedParametersObj[Number(k)]
     );
+
+    // Reset any parameters not in either scene to their last tracked value
+    const lastState = this.state;
+    this.setState(State.Crossfading);
+
+    for (let parameter of previousLockedParmeters) {
+      if (!activeLockedParametersObj[parameter.trackedParameter.parameter.id]) {
+        parameter.trackedParameter.resetToLastUserValue();
+      }
+    }
+
+    this.setState(lastState);
   };
 
   updateUI = () => {
@@ -328,6 +336,7 @@ export class LiveFader {
     this.activeScenes[buttonIndex] = this.scenes[sceneIndex];
     this.activeSceneIndices[buttonIndex] = sceneIndex;
 
+    // Need to reset unlocked parameters here
     this.updateActiveLockedParameters();
     this.updateFader(true);
     this.updateUI();

@@ -62,8 +62,12 @@ var ParameterScene = /** @class */ (function () {
 exports.ParameterScene = ParameterScene;
 var TrackedParameter = /** @class */ (function () {
     function TrackedParameter(parameter, lastUserValue) {
+        var _this = this;
         this.parameter = parameter;
         this.lastUserValue = lastUserValue;
+        this.resetToLastUserValue = function () {
+            _this.parameter.setValue(_this.lastUserValue);
+        };
     }
     return TrackedParameter;
 }());

@@ -87,6 +87,10 @@ export class ParameterScene {
 
 export class TrackedParameter {
   constructor(public parameter: LiveApiParameter, public lastUserValue: number) {}
+
+  resetToLastUserValue = () => {
+    this.parameter.setValue(this.lastUserValue);
+  };
 }
 
 /*export class TrackedParameters {

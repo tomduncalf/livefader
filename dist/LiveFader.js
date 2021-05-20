@@ -111,17 +111,13 @@ var LiveFader = /** @class */ (function () {
             _this.setState(previousState);
         };
         this.handleFaderButton = function (inlet, value) {
-            var _a;
             if (value === 0) {
                 _this.log.debug("Enter normal mode");
                 var wasMapping = _this.state === State.Mapping;
                 _this.setState(State.Normal);
                 _this.activeSceneButtonIndex = undefined;
                 if (wasMapping) {
-                    _this.log.debug(_this.currentMappingScene);
-                    (_a = _this.currentMappingScene) === null || _a === void 0 ? void 0 : _a.forEachLockedParameter(function (lockedParameter) {
-                        lockedParameter.parameter.setValue(_this.trackedParametersById[lockedParameter.parameter.id].lastUserValue);
-                    });
+                    _this.updateFader(true);
                 }
                 _this.currentMappingScene = undefined;
             }
@@ -177,6 +173,7 @@ var LiveFader = /** @class */ (function () {
             });
         };
         this.updateActiveLockedParameters = function () {
+            var previousLockedParmeters = __spreadArray([], _this.activeLockedParameters);
             // Use a dictionary for easier construction of the array
             var activeLockedParametersObj = {};
             _this.activeScenes[0].forEachLockedParameter(function (lockedParameter) {
@@ -200,6 +197,16 @@ var LiveFader = /** @class */ (function () {
             _this.log.verbose(activeLockedParametersObj);
             // Convert it to an array
             _this.activeLockedParameters = Object.keys(activeLockedParametersObj).map(function (k) { return activeLockedParametersObj[Number(k)]; });
+            // Reset any parameters not in either scene to their last tracked value
+            var lastState = _this.state;
+            _this.setState(State.Crossfading);
+            for (var _i = 0, previousLockedParmeters_1 = previousLockedParmeters; _i < previousLockedParmeters_1.length; _i++) {
+                var parameter = previousLockedParmeters_1[_i];
+                if (!activeLockedParametersObj[parameter.trackedParameter.parameter.id]) {
+                    parameter.trackedParameter.resetToLastUserValue();
+                }
+            }
+            _this.setState(lastState);
         };
         this.updateUI = function () {
             outlet(exports.Outlets.LeftText.index, "set", _this.activeScenes[0].getDescription());
@@ -228,6 +235,7 @@ var LiveFader = /** @class */ (function () {
         this.setActiveScene = function (buttonIndex, sceneIndex) {
             _this.activeScenes[buttonIndex] = _this.scenes[sceneIndex];
             _this.activeSceneIndices[buttonIndex] = sceneIndex;
+            // Need to reset unlocked parameters here
             _this.updateActiveLockedParameters();
             _this.updateFader(true);
             _this.updateUI();

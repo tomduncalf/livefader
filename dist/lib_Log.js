@@ -8,6 +8,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Log = exports.LogLevels = exports.log = void 0;
 var config_log_1 = require("./config_log");
 var outletLog = [];
+// Based on https://cycling74.com/forums/tutorial-using-the-javascript-live-api-in-max-for-live/replies/1#reply-5fd76050b2a7ee5f9fbcfb78
 function log(x, y, z) {
     for (var i = 0, len = arguments.length; i < len; i++) {
         var message = arguments[i];

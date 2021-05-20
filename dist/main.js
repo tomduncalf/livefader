@@ -18,7 +18,10 @@ function bang() {
     if (savedState)
         instance.loadSavedState(savedState);
 }
-function reset() {
+function reset_scene() {
+    instance.resetScene();
+}
+function reset_all() {
     instance.reset();
 }
 function cleanup() {

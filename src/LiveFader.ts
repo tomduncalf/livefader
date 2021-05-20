@@ -108,6 +108,17 @@ export class LiveFader {
     this.updateUI();
   };
 
+  resetScene = () => {
+    this.log.debug("reset scene");
+
+    if (this.currentMappingScene) {
+      this.currentMappingScene.reset();
+      this.updateActiveLockedParameters();
+      this.updateFader(true);
+      this.updateUI();
+    }
+  };
+
   handleMessage = (inlet: number, value: number) => {
     if (inlet === Inlets.LeftButton.index || inlet === Inlets.RightButton.index) {
       this.handleFaderButton(inlet, value);
@@ -181,6 +192,7 @@ export class LiveFader {
       );
 
       this.setState(State.Mapping);
+
       const buttonIndex = inlet === Inlets.LeftButton.index ? 0 : 1;
       this.currentMappingScene = this.activeScenes[buttonIndex];
       this.activeSceneButtonIndex = buttonIndex;

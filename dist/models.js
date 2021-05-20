@@ -42,6 +42,9 @@ var ParameterScene = /** @class */ (function () {
             });
             return description;
         };
+        this.reset = function () {
+            _this.lockedParametersById = {};
+        };
     }
     // We need to rediscover each locked parameter's id on loading state as it could have changed
     ParameterScene.hydrateFromSavedState = function (savedState) {

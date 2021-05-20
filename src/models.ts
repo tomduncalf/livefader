@@ -79,6 +79,10 @@ export class ParameterScene {
 
     return description;
   };
+
+  reset = () => {
+    this.lockedParametersById = {};
+  };
 }
 
 export class TrackedParameter {

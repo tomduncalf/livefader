@@ -61,6 +61,15 @@ var LiveFader = /** @class */ (function () {
             _this.updateFader(true);
             _this.updateUI();
         };
+        this.resetScene = function () {
+            _this.log.debug("reset scene");
+            if (_this.currentMappingScene) {
+                _this.currentMappingScene.reset();
+                _this.updateActiveLockedParameters();
+                _this.updateFader(true);
+                _this.updateUI();
+            }
+        };
         this.handleMessage = function (inlet, value) {
             if (inlet === exports.Inlets.LeftButton.index || inlet === exports.Inlets.RightButton.index) {
                 _this.handleFaderButton(inlet, value);
@@ -177,7 +186,6 @@ var LiveFader = /** @class */ (function () {
                 };
             });
             _this.activeScenes[1].forEachLockedParameter(function (lockedParameter) {
-                lib_Log_1.log(lockedParameter);
                 if (activeLockedParametersObj[lockedParameter.parameter.id]) {
                     activeLockedParametersObj[lockedParameter.parameter.id].lockedParameters[1] =
                         lockedParameter;

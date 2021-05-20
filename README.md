@@ -82,6 +82,8 @@ To create a distributable frozen `amxd`:
 
    Do not "unfreeze" this frozen patch, as it will extract the Javascript files from the frozen patch into Max's own folder and they'll take precidence over your source files, leading to hours of confusion (trust me, I know...)!
 
+   If you do this by accident, you need to go to `~/Documents/Max8/Max For Live Devices/` and delete any `LiveFader` related directories to clear it out.
+
 ## Working with TypeScript in Max
 
 Max has somewhat basic Javascript support, but I've made an effort to make working with it feel as "modern" as possible, using some abstractions and TypeScript (thanks https://github.com/ErnstHot/TypeScript-for-Max for the type definitions which I have reused).

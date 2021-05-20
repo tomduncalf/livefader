@@ -4,7 +4,7 @@ LiveFader is a Max for Live device, implementing a parameter cross-fader in the 
 
 Each side of the cross-fader is assigned to a "scene", and each scene can contain locked values for as many parameters as you like from anywhere in your Live set. As you move the fader from one side to the other, any locked parameters will fade their values, allowing interesting transitions to be easily created.
 
-LiveFader is written entirely in Typescript, showcasing the potential of the Max Javascript API for creating advanced functionality. My plan is to split this Max/TS integration out into a reusable module – for now, I have [documented](#Working-with-Typescript-in-Max) how the integration code works and some of the gotchas below.
+LiveFader is written entirely in TypeScript, showcasing the potential of the Max Javascript API for creating advanced functionality. My plan is to split this Max/TS integration out into a reusable module – for now, I have [documented](#Working-with-TypeScript-in-Max) how the integration code works and some of the gotchas below.
 
 Quick video demo:
 
@@ -58,15 +58,15 @@ To develop the Max device, you need to add the `dist` directory from this repo (
 
 Load `LiveFader Dev.amxd` in Ableton, open up the Max editor and go to `Options` > `File Preferences` and add a path pointing to the `dist` directory inside wherever you cloned this repo.
 
-After doing this, don't save any changes to the Max file (or undo them if you have already), as it can result in all the outlets and inlets disconnecting in the patch if it couldn't find the JS files (see [below](#Working-with-Typescript-in-Max) for explanation).
+After doing this, don't save any changes to the Max file (or undo them if you have already), as it can result in all the outlets and inlets disconnecting in the patch if it couldn't find the JS files (see [below](#Working-with-TypeScript-in-Max) for explanation).
 
 ### Running
 
-1. In a terminal, run `yarn dev`. This will watch the source Typescript files for changes, and when a change occurs, will rebuild the JS code.
+1. In a terminal, run `yarn dev`. This will watch the source TypeScript files for changes, and when a change occurs, will rebuild the JS code.
 
 2. Open `LiveFader Dev.amxd` in Ableton. It should be working correctly.
 
-3. As you make changes to the code, you need to manually trigger a reload of the JS (using Max's autowatcher results in listeners being left dangling, see [below](#Working-with-Typescript-in-Max)). To do this, open up the Max editor and cmd-click (in edit mode, or single click in presentation mode) the `bang` commented with `hit to reload js`. This will ensure that all listeners are cleaned up and that the JS reloads properly.
+3. As you make changes to the code, you need to manually trigger a reload of the JS (using Max's autowatcher results in listeners being left dangling, see [below](#Working-with-TypeScript-in-Max)). To do this, open up the Max editor and cmd-click (in edit mode, or single click in presentation mode) the `bang` commented with `hit to reload js`. This will ensure that all listeners are cleaned up and that the JS reloads properly.
 
    Generally, I find it is useful to have the Max window open when working on the code as you can see the log output in the console. However, if you want to develop with Max closed, the easiest way is to click `popout` to open the LiveFader window and then resize it so that you can see the `bang` button and the console output (which gets appended to a comment box).
 
@@ -82,9 +82,9 @@ To create a distributable frozen `amxd`:
 
    Do not "unfreeze" this frozen patch, as it will extract the Javascript files from the frozen patch into Max's own folder and they'll take precidence over your source files, leading to hours of confusion (trust me, I know...)!
 
-## Working with Typescript in Max
+## Working with TypeScript in Max
 
-Max has somewhat basic Javascript support, but I've made an effort to make working with it feel as "modern" as possible, using some abstractions and Typescript (thanks https://github.com/ErnstHot/TypeScript-for-Max for the type definitions which I have reused).
+Max has somewhat basic Javascript support, but I've made an effort to make working with it feel as "modern" as possible, using some abstractions and TypeScript (thanks https://github.com/ErnstHot/TypeScript-for-Max for the type definitions which I have reused).
 
 A few of the features I've created which might be useful to others (I plan to split these out into a reusable module of some kind at some point):
 
@@ -102,7 +102,7 @@ A few of the features I've created which might be useful to others (I plan to sp
 
 There are numerous limitations in Max's Javascript support. I've tried as best I can to work around them, but there are some you need to be aware of:
 
-- Max's JS engine supports somewhere between ES3 and ES5 Javascript. Generally, it is better to keep it simple rather than using "cutting edge" functionality, as even if it can be polyfilled by Typescript, it might impact performance.
+- Max's JS engine supports somewhere between ES3 and ES5 Javascript. Generally, it is better to keep it simple rather than using "cutting edge" functionality, as even if it can be polyfilled by TypeScript, it might impact performance.
 
 - Source files cannot be required from subdirectories, only from the top level. For that reason, I've "namespaced" the files by prefixing them with what their directory name would be.
 

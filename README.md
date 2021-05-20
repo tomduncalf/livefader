@@ -28,7 +28,7 @@ To use, open `LiveFader.amxd` in Ableton (e.g. drag it in to a track). This will
 
 The below diagram provides a quick overview of the main UI elements:
 
-![Overview of LiveFader UI elements](https://user-images.githubusercontent.com/5458070/118807991-e15a4600-b8a0-11eb-809b-eb8550eb39d4.png)
+![Overview of LiveFader UI elements](https://user-images.githubusercontent.com/5458070/119034250-11d7d800-b9a6-11eb-844d-3e576eb64156.png)
 
 All controls are MIDI mappable using Live's usual MIDI mapping (Cmd-M), so you can assign buttons on a controller to the left/right buttons and assign a fader or rotary to the crossfader.
 
@@ -48,7 +48,7 @@ The main workflow is:
 
 You can use the scene buttons to choose a different scene for either the left or right side of the fader (when that side's mapping button is active), allowing you to have up to 8 different sets of locked parameters available.
 
-Right now, the only way to remove a parameter lock is to hit "reset" - obviously this would be nice to fix :)
+Right now, the only way to remove a parameter lock is to hit "reset_scene" - I plan to add the ability to remove individual parameters.
 
 ## Development
 
@@ -117,5 +117,5 @@ There are numerous limitations in Max's Javascript support. I've tried as best I
 - [ ] Add UI for removing parameters from the mapping - right now you can only reset the whole thing
 - [ ] Testing
 - [ ] Fix various bugs
-- [ ] Better UI
+- [ ] Better UI including remove parameter
 - [ ] Split out reusable code to a separate module
